@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="UTF-8">
+    <title>Vendor Management | Carnivalo</title>
+
+
+    <!-- Your CSS file -->
+    <link rel="stylesheet" href="vendors_style.css">
+
+</head>
+<body>
+
+<div class="events-page">
+
+    <!-- ================= VENDOR HERO ================= -->
+    <section class="event-hero" id="heroSection">
+        <div class="event-hero-content">
+            <h1>Vendor Management by Carnivalo</h1>
+
+            <p class="hero-subtext">
+                Manage trusted vendors for every event —
+                <b>Carnivalo</b> helps you add, track, and allocate vendors
+                seamlessly.
+            </p>
+
+            <div class="hero-features">
+                <div>🏢 Verified Event Vendors</div>
+                <div>📅 Availability Tracking</div>
+                <div>👥 Guest Capacity Control</div>
+                <div>📊 Easy Vendor Assignment</div>
+            </div>
+
+            <div class="hero-actions">
+                <button class="btn btn-outline" onclick="showVendorFlow()">View Vendors</button>
+                <button class="btn btn-primary" onclick="showVendorFlow()">Add Vendor</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= VENDOR FLOW ================= -->
+    <section id="vendorFlow" style="display:none; margin-top:40px;">
+
+        <!-- BACK BUTTON -->
+        <div style="max-width:1100px;margin:0 auto 20px;">
+            <button class="btn btn-outline" onclick="goBackToHero()">← Back</button>
+        </div>
+
+        <!-- ================= VENDOR LIST ================= -->
+        <div class="card-box" style="max-width:1100px;margin:0 auto 40px;">
+            <h2>Registered Vendors</h2>
+
+            <table class="emp-table">
+                <thead>
+                    <tr>
+                        <th>Vendor Name</th>
+                        <th>Vendor Type</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Guest Capacity</th>
+                        <th>Availability</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Sample Row -->
+                    <tr>
+                        <td>Royal Caterers</td>
+                        <td>Catering</td>
+                        <td>royal@gmail.com</td>
+                        <td>9876543210</td>
+                        <td>500</td>
+                        <td>10 Jan 2025 10:00 → 10 Jan 2025 22:00</td>
+                    </tr>
+
+                    <!-- Empty State -->
+                    <!--
+                    <tr>
+                        <td colspan="6" style="text-align:center;color:gray;">
+                            No vendors added yet
+                        </td>
+                    </tr>
+                    -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ================= ADD VENDOR FORM ================= -->
+        <section class="manage-employees-section">
+            <div class="event-form-container" style="max-width:1100px;margin:0 auto;">
+                <br><br><br>
+                <h2 class="venue-heading">Add New Vendor</h2>
+
+                <form>
+                    <label>Vendor Name</label>
+                    <input type="text" required>
+
+                    <label>Vendor Type</label>
+                    <select required>
+                        <option disabled selected>-- Select Vendor Type --</option>
+                        <option>Catering</option>
+                        <option>Decoration</option>
+                        <option>Sound & Lighting</option>
+                        <option>Photography</option>
+                        <option>Venue Provider</option>
+                    </select>
+
+                    <label>Email</label>
+                    <input type="email" required>
+
+                    <label>Phone</label>
+                    <input type="text" required>
+
+                    <label>Guest Capacity</label>
+                    <input type="number" min="1" required>
+
+                    <label>Available From</label>
+                    <input type="datetime-local" required>
+
+                    <label>Available To</label>
+                    <input type="datetime-local" required>
+
+                    <button type="submit" class="btn btn-primary" style="margin-top:15px;">
+                        Add Vendor
+                    </button>
+                </form>
+            </div>
+        </section>
+
+    </section>
+</div>
+
+<script>
+    function showVendorFlow() {
+        document.getElementById("heroSection").style.display = "none";
+        document.getElementById("vendorFlow").style.display = "block";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function goBackToHero() {
+        document.getElementById("vendorFlow").style.display = "none";
+        document.getElementById("heroSection").style.display = "block";
+        window.scrollTo({ top: 0, behavior: "instant" });
+    }
+</script>
+
+</body>
+</html>

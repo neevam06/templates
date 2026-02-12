@@ -1,0 +1,663 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load tz %}
+{% block content %}
+
+      <div class="events-page">
+        <!-- ================= HERO SECTION ================= -->
+        <section class="vendor-hero-new" id="heroSection">
+          <div class="vendor-hero-inner">
+            <span class="hero-badge">Plan Smarter Events</span>
+            <h1>
+              Create &amp; Manage
+              <span class="flow-text">Unforgettable Events</span>
+            </h1>
+            <p>
+              From small gatherings to grand celebrations — manage vendors,
+              staff, and services in one place.
+            </p>
+            <div class="hero-actions">
+              <button class="hero-btn primary" onclick="showEventFlow()">
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <iconify-icon
+                    icon="lucide:plus"
+                    style="font-size: 18px"
+                  ></iconify-icon>
+                  Create Event
+                </div>
+              </button>
+              <button class="hero-btn outline" onclick="showEventFlow()">
+                My Events
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= EVENT FLOW APP ================= -->
+        <section
+          id="eventFlow"
+          class="hidden container-xl"
+          style="padding-top: 40px; padding-bottom: 80px"
+        >
+          <!-- BACK NAVIGATION -->
+          <div style="margin-bottom: 24px">
+            <button class="btn btn-back" onclick="goBackToHero()">
+              <iconify-icon
+                icon="lucide:arrow-left"
+                style="font-size: 18px"
+              ></iconify-icon>
+              Back to Home
+            </button>
+          </div>
+
+          <!-- ================= TRACK EVENTS CARD ================= -->
+          <div class="card-box">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 16px;
+              "
+            >
+              <h2>My Event Requests</h2>
+              <span style="font-size: 14px; color: var(--muted-foreground)"
+                >Track status and payments</span
+              >
+            </div>
+
+            <div style="overflow-x: auto">
+              {% for e in user_events %}
+                <table class="emp-table">
+  <thead>
+    <tr>
+      <th>Event Type</th>
+      <th>Vendor</th>
+      <th>From</th>
+      <th>To</th>
+      <th>Status</th>
+      <th>Assigned Manager</th>
+      <th>Total Amount</th>
+      <th>Payment</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for e in user_events %}
+    <tr>
+      <td><strong>{{ e.event_type }}</strong></td>
+      <td>{{ e.vendor.vendor_name }}</td>
+      <td>{{ e.from_datetime|localtime|date:"d M Y, h:i A" }}</td>
+      <td>{{ e.to_datetime|localtime|date:"d M Y, h:i A" }}</td>
+
+      <td>
+        {% if e.status == "PENDING" %}
+          <span class="status-badge pending">Pending</span>
+        {% elif e.status == "ASSIGNED" %}
+          <span class="status-badge assigned">Assigned</span>
+        {% else %}
+          <span class="status-badge allocated">Allocated</span>
+        {% endif %}
+      </td>
+
+      <td>
+        {% if e.assigned_employee %}
+          <div class="employee-info">
+            {{ e.assigned_employee.full_name }}
+          </div>
+        {% else %}
+          <span class="muted">—</span>
+        {% endif %}
+      </td>
+
+      <td>
+        {% if e.final_amount %}
+          ₹{{ e.final_amount }}
+        {% elif e.total_amount %}
+          ₹{{ e.total_amount }}
+        {% else %}
+          —
+        {% endif %}
+      </td>
+
+      <td>
+        {% if e.status == "SERVICE_DONE" %}
+            {% if e.payment_status == "UNPAID" %}
+                <a href="{% url 'event_payment' e.event_id %}"
+                   class="btn-success-sm">
+                    Pay Now
+                </a>
+            {% else %}
+                <span class="paid-text">Paid ✓</span>
+            {% endif %}
+        {% else %}
+            —
+        {% endif %}
+      </td>
+
+      <td>
+        {% if e.payment_status == "PAID" %}
+            <a href="{% url 'user_download_invoice' e.event_id %}"
+               class="btn-outline-sm">
+                Invoice
+            </a>
+        {% else %}
+            <span class="muted">Pending</span>
+        {% endif %}
+      </td>
+    </tr>
+
+    {% empty %}
+    <tr>
+      <td colspan="9" class="empty-state">
+        No events created yet. Start by creating one!
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- ================= CREATE EVENT FORM ================= -->
+          <div class="card-box">
+            <h2 class="venue-heading">Create Event Request</h2>
+
+            <form method="POST" action="{% url 'events' %}">
+              {% csrf_token %}
+
+              <!-- Section 1: Basic Info -->
+              <div class="form-grid">
+                <div>
+                  <label>Event Type</label>
+                  <select name="event_type" id="eventTypeSelect" required="">
+                    <option value="">Select Event</option>
+                    {% for e in supported_event_types %}
+                    <option value="{{ e }}">{{ e|title }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div>
+                  <label>Venue</label>
+                  <select name="vendor_id" id="vendorSelect" required="">
+                    <option disabled="" selected="">Select Venue</option>
+                    {% if vendors %} {% for v in vendors %}
+                    <option
+                      value="{{ v.vendor_id }}"
+                      data-from="{{ v.availability_from|localtime|date:'Y-m-d\\TH:i' }}"
+                      data-to="{{ v.availability_to|localtime|date:'Y-m-d\\TH:i' }}"
+                      data-capacity="{{ v.vendor_guest_capacity }}"
+                      data-price="{{ v.base_price }}"
+                    >
+                      {{ v.vendor_name }} (₹{{ v.base_price }}/hr · Max {{
+                      v.vendor_guest_capacity }} Guests)
+                    </option>
+                    {% endfor %} {% else %}
+                    <option disabled="">No venues available</option>
+                    {% endif %}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Section 2: Timing -->
+              <div class="form-grid" style="margin-top: 16px">
+                <div>
+                  <label>From Date &amp; Time</label>
+                  <div style="position: relative">
+                    <input
+                      type="text"
+                      id="from_date"
+                      name="from_date"
+                      placeholder="Select Start Time"
+                      required=""
+                    />
+                    <iconify-icon
+                      icon="lucide:calendar"
+                      style="
+                        position: absolute;
+                        right: 12px;
+                        top: 12px;
+                        pointer-events: none;
+                        color: var(--muted-foreground);
+                      "
+                    ></iconify-icon>
+                  </div>
+                </div>
+                <div>
+                  <label>To Date &amp; Time</label>
+                  <div style="position: relative">
+                    <input
+                      type="text"
+                      id="to_date"
+                      name="to_date"
+                      placeholder="Select End Time"
+                      required=""
+                    />
+                    <iconify-icon
+                      icon="lucide:calendar"
+                      style="
+                        position: absolute;
+                        right: 12px;
+                        top: 12px;
+                        pointer-events: none;
+                        color: var(--muted-foreground);
+                      "
+                    ></iconify-icon>
+                  </div>
+                  <small
+                    id="timeError"
+                    class="inline-error"
+                    style="display: none"
+                  ></small>
+                </div>
+              </div>
+
+              <!-- Section 3: Services -->
+              <div style="margin-top: 24px">
+                <label>Select Services</label>
+                <select
+                  name="service_types[]"
+                  id="serviceSelect"
+                  multiple=""
+                  size="5"
+                  style="height: 120px"
+                >
+                  {% for s in available_services %}
+                  <option value="{{ s|lower }}">{{ s|title }}</option>
+                  {% endfor %}
+                </select>
+                <div
+                  style="
+                    margin-top: 8px;
+                    font-size: 13px;
+                    color: var(--muted-foreground);
+                  "
+                >
+                  <iconify-icon
+                    icon="lucide:info"
+                    style="font-size: 12px; vertical-align: middle"
+                  ></iconify-icon>
+                  Hold Ctrl (Windows) or Cmd (Mac) to select multiple services.
+                </div>
+              </div>
+
+              <!-- Dynamic Fields Container -->
+              <div
+                id="dynamicFields"
+                style="
+                  margin-top: 24px;
+                  display: grid;
+                  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                  gap: 24px;
+                "
+              ></div>
+
+              <!-- Section 4: Summary & Payment -->
+              <div
+                style="
+                  margin-top: 32px;
+                  padding-top: 24px;
+                  border-top: 1px solid var(--border);
+                "
+              >
+                <div class="form-grid">
+                  <div>
+                    <label>Selected Services Summary</label>
+                    <ul
+                      id="selectedServices"
+                      style="padding-left: 20px; margin-top: 0"
+                    ></ul>
+                  </div>
+                  <div>
+                    <label for="guest_count">Guest Count</label>
+                    <input
+                      type="number"
+                      id="guest_count"
+                      name="guest_count"
+                      min="1"
+                      placeholder="e.g. 50"
+                      required=""
+                    />
+                    <small
+                      id="capacityHint"
+                      style="
+                        color: var(--muted-foreground);
+                        display: block;
+                        margin-top: 4px;
+                      "
+                    ></small>
+                  </div>
+                </div>
+
+                <div style="margin-top: 24px">
+                  <label>Estimated Venue Charges</label>
+                  <div class="price-box">
+                    <div style="display: flex; align-items: center; gap: 8px">
+                      <iconify-icon
+                        icon="lucide:credit-card"
+                        style="color: var(--muted-foreground)"
+                      ></iconify-icon>
+                      <span>Total Estimate</span>
+                    </div>
+                    <span>₹ <span id="vendorPrice">0</span></span>
+                  </div>
+                </div>
+
+                <div
+                  style="
+                    display: flex;
+                    justify-content: flex-end;
+                    align-items: center;
+                    gap: 16px;
+                    margin-top: 32px;
+                  "
+                >
+                  <input type="hidden" name="paid_amount" id="paidAmount" />
+
+                  <button
+                    type="button"
+                    onclick="goBackToHero()"
+                    class="btn btn-danger"
+                    style="
+                      background: transparent;
+                      color: var(--destructive);
+                      border: 1px solid var(--destructive);
+                    "
+                  >
+                    Cancel Request
+                  </button>
+
+                  <button
+                    type="button"
+                    id="payBtn"
+                    class="btn btn-success"
+                    style="
+                      height: 48px;
+                      padding: 0 32px;
+                      font-size: 16px;
+                      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                    "
+                  >
+                    Proceed to Payment
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+/* ================= BASIC FLOW ================= */
+const eventTypeSelect = document.getElementById("eventTypeSelect");
+const eventFlow = document.getElementById("eventFlow");
+const heroSection = document.getElementById("heroSection");
+
+function showEventFlow() {
+    heroSection.classList.add("hidden");
+    eventFlow.classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function goBackToHero() {
+    eventFlow.classList.add("hidden");
+    heroSection.classList.remove("hidden");
+    window.scrollTo({ top: 0 });
+}
+
+/* ================= DYNAMIC USER FIELDS ================= */
+const eventUserFields = JSON.parse('{{ event_user_fields|escapejs }}');
+const dynamicFieldsBox = document.getElementById("dynamicFields");
+
+function renderUserFields(eventType) {
+    dynamicFieldsBox.innerHTML = "";
+
+const fields = eventUserFields[eventType];
+if (!fields) return;
+
+    fields.forEach(field => {
+            // 🔥 DO NOT render if service not selected
+    if (field.service_type && !shouldShowDynamicFields(field.service_type)) {
+        return;
+    }
+
+        let html = `<div class="service-box">`;
+            
+        // ✅ TEXT FIELD
+        if (field.field_type === "text") {
+            html += `
+                <label>${field.label}</label>
+                <input type="text" name="dynamic_${field.id}"
+                       ${field.required ? "required" : ""}>
+            `;
+        }
+
+        // ✅ CHECKBOX (NO DUPLICATE TITLE)
+        else if (field.field_type === "checkbox") {
+            html += `
+                <label class="checkbox-card">
+                    <input type="checkbox" name="dynamic_${field.id}">
+                    <span class="checkmark"></span>
+                    <span class="label-text">${field.label}</span>
+                </label>
+            `;
+        }
+
+        // ✅ MULTI
+        else if (field.field_type === "multi") {
+            html += `
+                <label>${field.label}</label>
+                <input type="text" name="dynamic_${field.id}"
+                       placeholder="Type & press Enter">
+            `;
+        }
+
+        // ✅ PRICING GROUP
+else if (field.field_type === "pricing_group") {
+
+    if (!field.options || field.options.length === 0) return;
+
+    html += `
+        <label>${field.label}</label>
+        <select name="dynamic_${field.id}" required>
+            <option value="">Select ${field.label}</option>
+    `;
+
+    field.options.forEach(opt => {
+        html += `<option value="${opt.key}">${opt.label}</option>`;
+    });
+
+    html += `</select>`;
+}
+
+
+        html += `</div>`;
+        dynamicFieldsBox.insertAdjacentHTML("beforeend", html);
+    });
+}
+const serviceSelect = document.getElementById("serviceSelect");
+const selectedServicesList = document.getElementById("selectedServices");
+function shouldShowDynamicFields(serviceValue) {
+    return Array.from(serviceSelect.selectedOptions)
+        .some(opt => opt.value === serviceValue);
+}
+
+serviceSelect.addEventListener("change", function () {
+    const eventType = eventTypeSelect.value?.toLowerCase();
+    if (!eventType) {
+        dynamicFieldsBox.innerHTML = "";
+        return;
+    }
+    renderUserFields(eventType);
+});
+eventTypeSelect.addEventListener("change", function () {
+    dynamicFieldsBox.innerHTML = "";
+});
+
+/* ================= SERVICES FILTER ================= */
+const eventServiceMap = {{ event_service_map|safe }};
+
+
+function filterServicesByEvent() {
+    const selectedEvent = eventTypeSelect.value?.toLowerCase();
+
+    Array.from(serviceSelect.options).forEach(opt => {
+        opt.selected = false;
+        opt.disabled = true;
+        opt.style.display = "none";
+    });
+
+    if (eventServiceMap[selectedEvent]) {
+        eventServiceMap[selectedEvent].forEach(service => {
+            const option = Array.from(serviceSelect.options)
+                .find(o => o.value === service);
+            if (option) {
+                option.disabled = false;
+                option.style.display = "block";
+            }
+        });
+    }
+
+    serviceSelect.dispatchEvent(new Event("change"));
+}
+
+eventTypeSelect.addEventListener("change", filterServicesByEvent);
+document.addEventListener("DOMContentLoaded", filterServicesByEvent);
+
+/* ================= SELECTED SERVICES LIST ================= */
+serviceSelect.addEventListener("change", function () {
+    selectedServicesList.innerHTML = "";
+    Array.from(this.selectedOptions).forEach(option => {
+        const li = document.createElement("li");
+        li.textContent = option.text;
+        selectedServicesList.appendChild(li);
+    });
+});
+
+/* ================= DATE / PRICE LOGIC ================= */
+const bookings = JSON.parse('{{ bookings|escapejs }}');
+
+const vendorSelect = document.getElementById("vendorSelect");
+const guestInput = document.getElementById("guest_count");
+const capacityHint = document.getElementById("capacityHint");
+const payBtn = document.getElementById("payBtn");
+const vendorPriceDisplay = document.getElementById("vendorPrice");
+const paidAmountInput = document.getElementById("paidAmount");
+const timeError = document.getElementById("timeError");
+
+let fromPicker = null;
+let toPicker = null;
+
+function initPickers(minDate, maxDate) {
+
+    if (fromPicker) fromPicker.destroy();
+    if (toPicker) toPicker.destroy();
+
+    fromPicker = flatpickr("#from_date", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        altInput: true,
+        altFormat: "d M Y h:i K",
+        minuteIncrement: 30,
+        minDate: minDate,
+        maxDate: maxDate,
+        onChange: validateAndCalculate
+    });
+
+    toPicker = flatpickr("#to_date", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        altInput: true,
+        altFormat: "d M Y h:i K",
+        minuteIncrement: 30,
+        minDate: minDate,
+        maxDate: maxDate,
+        onChange: validateAndCalculate
+    });
+}
+
+/* 🔥 INITIAL BLOCK (NO VENUE SELECTED) */
+initPickers(new Date(), null);
+
+function validateAndCalculate() {
+    const vendorId = vendorSelect.value;
+    const fromDate = fromPicker.selectedDates[0];
+    const toDate = toPicker.selectedDates[0];
+
+    timeError.style.display = "none";
+    payBtn.disabled = true;
+    vendorPriceDisplay.innerText = "0";
+    paidAmountInput.value = "0";
+
+    if (!fromDate || !toDate) return;
+
+    if (toDate <= fromDate) {
+        timeError.innerText = "End time must be after start time.";
+        timeError.style.display = "block";
+        return;
+    }
+
+    const conflict = bookings.find(b =>
+        String(b.vendor_id) === String(vendorId) &&
+        fromDate < new Date(b.to_datetime) &&
+        toDate > new Date(b.from_datetime)
+    );
+
+    if (conflict) {
+        timeError.innerText = "This venue is already booked in this time slot.";
+        timeError.style.display = "block";
+        return;
+    }
+
+    const opt = vendorSelect.options[vendorSelect.selectedIndex];
+    const price = Math.ceil(
+        ((toDate - fromDate) / 36e5) * parseFloat(opt.dataset.price)
+    );
+
+    vendorPriceDisplay.innerText = price;
+    paidAmountInput.value = price;
+    payBtn.disabled = false;
+}
+
+/* ================= VENUE CHANGE HANDLER ================= */
+vendorSelect.addEventListener("change", function () {
+
+    const opt = this.options[this.selectedIndex];
+
+    const venueFrom = new Date(opt.dataset.from);
+    const venueTo = new Date(opt.dataset.to);
+
+    // 🔥 Block past time even if availability started earlier
+    const now = new Date();
+    const minAllowed = venueFrom > now ? venueFrom : now;
+
+    guestInput.max = opt.dataset.capacity;
+    guestInput.value = opt.dataset.capacity;
+    capacityHint.innerText = `Maximum allowed guests: ${opt.dataset.capacity}`;
+
+    initPickers(minAllowed, venueTo);
+});
+
+/* ================= PAY BUTTON ================= */
+payBtn.onclick = function () {
+    const amount = parseInt(paidAmountInput.value);
+    if (!amount || amount <= 0) {
+        alert("Please select vendor and valid date & time first");
+        return;
+    }
+
+    this.disabled = true;
+    this.innerHTML = "Processing...";
+    setTimeout(() => document.querySelector("form").submit(), 1500);
+};
+
+</script>
+<script>
+const themeCapabilityMap = JSON.parse('{{ theme_capability_map|escapejs }}');
+const bookings = JSON.parse('{{ bookings|escapejs }}');
+const cateringCapabilities = {{ catering_capabilities|safe }};
+
+</script>
+{% endblock %}

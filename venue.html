@@ -1,0 +1,986 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="vendor-page">
+
+    <!-- ================= VENDOR HERO ================= -->
+    <section class="vendor-hero-new" id="heroSection">
+        <div class="vendor-hero-inner">
+
+            <span class="hero-badge">Trusted Event Marketplace</span>
+
+            <h1>
+                Book the <span>Perfect Vendors</span><br>
+                for Your Event
+            </h1>
+
+            <p>
+                Venues, catering, photography, decoration & more —
+                verified venues with transparent pricing and real availability.
+            </p>
+
+            <div class="hero-actions">
+                <button class="hero-btn primary" onclick="window.location.href='/venue/?tab=explore'">
+                    Explore Venues
+                </button>
+
+                <button class="hero-btn outline" onclick="window.location.href='/venue/?open=form'">
+                    List Your Venue
+                </button>
+            </div>
+
+            <div class="hero-stats">
+                <div><b>500+</b><span>Venues</span></div>
+                <div><b>1,200+</b><span>Events Managed</span></div>
+                <div><b>100%</b><span>Verified</span></div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ================= VENDOR LIST ================= -->
+    <section id="vendorFlow" class="hidden" style="margin-top:40px;">
+
+        <!-- BACK BUTTON -->
+        <div style="max-width:1100px;margin:0 auto 20px;">
+            <button class="btn btn-back" onclick="goBackToHero()">← Back</button>
+        </div>
+
+        <!-- ================= AVAILABLE VENDORS ================= -->
+        <div class="card-box" style="max-width:1200px;margin:0 auto 40px;">
+            <h2>Available Venues</h2>
+
+            {% if vendors %}
+            <div class="venues" id="venues">
+
+                {% for vendor in vendors %}
+
+                <div class="venue-card">
+                    
+    {% if vendor.total_bookings >= 1 %}
+    <div class="hot-badge">
+        <i class="fa-solid fa-fire"></i> HOT SELLING
+    </div>
+    {% elif vendor.total_bookings >= 5 %}
+    <div class="hot-badge">⭐ POPULAR</div>
+{% endif %}
+                    {% if vendor.vendor_image1 %}
+                    <img src="{{ vendor.vendor_image1.url }}" class="venue-photo">
+                    {% else %}
+                    <img src="{% static 'images/default_venue.jpg' %}" class="venue-photo">
+                    {% endif %}
+
+                    <div class="venue-details">
+                        <h4>{{ vendor.vendor_name }}</h4>
+                        <p class="venue-address">📍 {{ vendor.vendor_address }}</p>
+                        <p class="venue-capacity">
+                            👥 Capacity: {{ vendor.vendor_guest_capacity }} Guests
+                        </p>
+                        <p>
+                            📅 {{ vendor.availability_from|date:"d M Y, h:i A" }}
+                            →
+                            {{ vendor.availability_to|date:"d M Y, h:i A" }}
+                        </p>
+
+{% if vendor.status in "AVAILABLE,APPROVED" and vendor.availability_from <= now and vendor.availability_to >= now %}
+<div class="venue-actions">
+    <a href="{% url 'events' %}?vendor_id={{ vendor.vendor_id }}"
+       class="action-btn primary">
+        Book Now
+    </a>
+
+    <a href="{% url 'venue_detail' vendor.vendor_id %}"
+       class="action-btn secondary">
+        View Details
+    </a>
+</div>
+{% else %}
+    <button class="book-btn disabled" disabled>
+        Unavailable
+    </button>
+{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+            </div>
+            {% else %}
+            <p style="text-align:center;color:gray;">
+                No vendors are available at the moment
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- ================= VENDOR OWNER CTA ================= -->
+        <section class="card-box" style="max-width:1100px;margin:0 auto 60px;">
+            <div style="text-align:center;">
+                <h2>Didn’t find your venue or service listed above?</h2>
+
+                <p style="color:#6b7280;font-size:16px;max-width:750px;margin:0 auto;">
+                    If you are a <b>venue owner</b>, register with Carnivalo to
+                    showcase your services, receive genuine event requests, and grow your
+                    business.
+                </p>
+
+                <div style="margin-top:20px; display:flex; gap:14px; justify-content:center;">
+                    <button class="btn btn-vendor" onclick="showVendorForm()">
+                        Register as Venue
+                    </button>
+
+                    <button class="btn btn-back" onclick="window.location.href='?tab=myvendors'">
+                        My Registered Venues
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+    </section>
+    <section id="vendorForm" class="vendor-form-container hidden">
+        <h2>
+            {% if edit_mode %}Edit Your Venue{% else %}Register Your Venue{% endif %}
+        </h2>
+
+<form method="POST"
+      enctype="multipart/form-data"
+      action="{% if edit_mode %}
+            {% url 'edit_venue' view_vendor.vendor_id %}
+        {% else %}
+            {% url 'venue' %}
+        {% endif %}">
+            {% csrf_token %}
+
+            <label>Venue Name</label>
+            <input type="text" name="vendor_name" value="{{ view_vendor.vendor_name|default_if_none:'' }}" required>
+
+            <label>Venue Address</label>
+            <textarea name="vendor_address"
+          id="vendorAddress"
+          required>
+{{ view_vendor.vendor_address|default_if_none:'' }}
+</textarea><small id="addressError"
+       style="color:red; display:none;">
+    <i class=""></i> This address is already registered
+</small>
+
+            <label>Guest Capacity</label>
+            <input type="text" id="guestCapacity" name="vendor_guest_capacity"
+                value="{{ view_vendor.vendor_guest_capacity|default_if_none:'' }}" required>
+            <small id="capacityHint" style="color: #6b7280;"></small>
+
+            <label>Per Day Price (₹)</label>
+            <input type="text" id="basePrice" name="base_price" value="{{ view_vendor.base_price|default_if_none:'' }}"
+                required>
+            <small id="priceHint" style="color:#6b7280;"></small>
+            <label>Vendor Images (Max 3)</label>
+            {% if edit_mode %}
+            <label>Existing Images</label><br>
+
+            {% if view_vendor.vendor_image1 %}
+            <img src="{{ view_vendor.vendor_image1.url }}" width="100">
+            {% endif %}
+
+            {% if view_vendor.vendor_image2 %}
+            <img src="{{ view_vendor.vendor_image2.url }}" width="100">
+            {% endif %}
+
+            {% if view_vendor.vendor_image3 %}
+            <img src="{{ view_vendor.vendor_image3.url }}" width="100">
+            {% endif %}
+            {% endif %}
+            <div id="image-upload-container">
+                <input type="file" name="vendor_image1" class="form-control vendorImagesInput" accept="image/*">
+            </div>
+
+            <div id="image-preview" style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;"></div>
+
+            <small style="color:#6b7280;">
+                You can upload up to 3 images (JPG / PNG)
+            </small>
+            {% if edit_mode %}
+            <label>Status</label>
+            <select name="status" class="form-control" required>
+                <option value="AVAILABLE" {% if view_vendor.status == "AVAILABLE" %}selected{% endif %}>
+                    Available
+                </option>
+
+                <option value="UNAVAILABLE" {% if view_vendor.status == "UNAVAILABLE" %}selected{% endif %}>
+                    Unavailable
+                </option>
+            </select>
+            {% endif %}
+            <label>Available From</label>
+            <input type="date" name="availability_from"
+                value="{{ view_vendor.availability_from|date:'Y-m-d' }}" required>
+
+            <label>Available To</label>
+            <input type="date" name="availability_to"
+                value="{{ view_vendor.availability_to|date:'Y-m-d' }}" required>
+            <br><br>
+            <h3 style="margin-top:30px;">Venue Verification Documents</h3>
+<input type="hidden" name="ai_verified" id="aiVerified" value="0">
+<div class="verification-docs">
+{% if edit_mode and view_vendor.aadhaar_document %}
+    <a href="{{ view_vendor.aadhaar_document.url }}" target="_blank">
+        📄View Uploaded Aadhaar
+    </a>
+    {% else %}
+    <label>Aadhaar (Owner Identity Proof)</label>
+    <input type="file"
+           name="aadhaar_document"
+           accept=".pdf,.jpg,.png"
+           {% if not edit_mode %}required{% endif %}>
+{% endif %}
+<label>Property Tax Receipt</label>
+
+{% if edit_mode and view_vendor.property_tax_receipt %}
+    <div style="margin-bottom:10px;">
+        <a href="{{ view_vendor.property_tax_receipt.url }}" target="_blank">
+            📄 View Uploaded Property Tax Receipt
+        </a>
+    </div>
+{% else %}
+    <input type="file"
+           name="property_tax_receipt"
+           accept=".pdf,.jpg,.png"
+           {% if not edit_mode %}required{% endif %}>
+{% endif %}
+
+
+<!-- ================= LEASE AGREEMENT ================= -->
+<label>Rental / Lease Agreement (if applicable)</label>
+
+{% if edit_mode and view_vendor.lease_agreement %}
+    <div style="margin-bottom:10px;">
+        <a href="{{ view_vendor.lease_agreement.url }}" target="_blank">
+            📄 View Uploaded Lease Agreement
+        </a>
+    </div>
+{% else %}
+    <input type="file"
+           name="lease_agreement"
+           accept=".pdf,.jpg,.png">
+{% endif %}
+
+
+<!-- ================= TRADE LICENSE ================= -->
+<label>Municipal Trade License</label>
+
+{% if edit_mode and view_vendor.trade_license %}
+    <div style="margin-bottom:10px;">
+        <a href="{{ view_vendor.trade_license.url }}" target="_blank">
+            📄 View Uploaded Trade License
+        </a>
+    </div>
+{% else %}
+    <input type="file"
+           name="trade_license"
+           accept=".pdf,.jpg,.png"
+           {% if not edit_mode %}required{% endif %}>
+{% endif %}
+
+
+<!-- ================= GST CERTIFICATE ================= -->
+<label>GST Certificate</label>
+
+{% if edit_mode and view_vendor.gst_certificate %}
+    <div style="margin-bottom:10px;">
+        <a href="{{ view_vendor.gst_certificate.url }}" target="_blank">
+            📄 View Uploaded GST Certificate
+        </a>
+    </div>
+{% else %}
+    <input type="file"
+           name="gst_certificate"
+           accept=".pdf,.jpg,.png">
+{% endif %}
+
+    {% if edit_mode %}
+        <small style="color:#6b7280;">
+            Already uploaded documents will be reused unless replaced.
+        </small>
+    {% endif %}
+</div>
+{% if not edit_mode %}
+            <div style="
+    margin-top:24px;
+    padding:16px;
+    background:#f8fafc;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    font-size:14px;
+    color:#374151;
+">
+
+                <b>🔍 Vendor Verification</b>
+                <p style="margin-top:8px;">
+                    To maintain a trusted marketplace, Carnivalo performs a strict verification
+                    process for every vendor.
+                </p>
+
+                <ul style="margin-top:8px; padding-left:18px;">
+                    <li>✔ Manual review of documents & details</li>
+                    <li>✔ Fake or duplicate listings are rejected</li>
+                    <li>✔ Approved vendors get real event assignments</li>
+                </ul>
+
+                <p style="margin-top:10px; font-weight:600;">
+                    One-time Vendor Verification Fee:
+                    <span style="color:#16a34a;">₹1000</span>
+                </p>
+
+                <p style="margin-top:4px; color:#6b7280;">
+                    This amount is non-refundable and helps us keep the platform genuine.
+                </p>
+            </div>
+            {% endif %}
+            <div id="verificationWarning"
+     style="display:none; margin-top:12px; color:red; font-weight:600;">
+</div>
+            <div class="button-center">
+                {% if edit_mode %}
+    <button type="submit" class="btn btn-primary" style="margin-top:15px;">
+        Update Venue
+    </button>
+{% else %}
+    <button type="button" class="btn btn-primary" id="payVerifyBtn" style="margin-top:15px;">
+        Pay ₹1000 & Submit for Verification
+    </button>
+{% endif %}
+                <button type="button" class="btn btn-back" onclick="cancelEdit()">
+                    Cancel
+                </button>
+            </div>
+            <input type="hidden" name="verification_paid" id="verificationPaid" value="0">
+        </form>
+
+    </section>
+    <section id="myVendors" class="card-box hidden" style="max-width:1100px; margin:40px auto;">
+
+        <h2 style="text-align:center;">My Registered Vendors</h2>
+
+        {% if my_vendors %}
+        <div style="overflow-x:auto;">
+            <table class="vendor-table">
+                <thead>
+                    <tr>
+                        <th>Vendor</th>
+                        <th>Capacity</th>
+                        <th>Per Day Price</th>
+                        <th>Availability</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for v in my_vendors %}
+                    <tr>
+                        <td>
+                            <strong>{{ v.vendor_name }}</strong><br>
+                            <small style="color:#6b7280;">
+                                📍 {{ v.vendor_address|truncatechars:35 }}
+                            </small>
+                        </td>
+
+                        <td>{{ v.vendor_guest_capacity }}</td>
+
+                        <td>₹{{ v.base_price }}</td>
+
+                        <td>
+                            {{ v.availability_from|date:"d M Y H:i" }}<br>
+                            <small style="color:#6b7280;">
+                                → {{ v.availability_to|date:"d M Y H:i" }}
+                            </small>
+                        </td>
+
+                        <td>
+                            <select class="status-select"
+                                onchange="updateVendorStatus('{{ v.vendor_id }}', this.value)">
+                                <option value="AVAILABLE" {% if v.status == "AVAILABLE" %}selected{% endif %}>
+                                    Available
+                                </option>
+                                <option value="UNAVAILABLE" {% if v.status == "UNAVAILABLE" %}selected{% endif %}>
+                                    Unavailable
+                                </option>
+                            </select>
+                        </td>
+
+                        <td class="actions-cell">
+
+                            {% if v.status == "PENDING" %}
+                            <span style="color:orange;font-weight:600;">
+                                ⏳ Pending Approval
+                            </span>
+
+                            {% elif v.status == "REJECTED" %}
+                            <span style="color:red;font-weight:600;">
+                                ❌ Rejected by Admin
+                            </span>
+
+                            {% else %}
+                            <!-- APPROVED / AVAILABLE -->
+<button class="action-btn edit-btn"
+    onclick="window.location.href='{% url 'edit_venue' v.vendor_id %}'">
+    ✏️ Edit
+</button>
+
+                            <button class="action-btn delete-btn" onclick="deletevenue('{{ v.vendor_id }}')">
+                                🗑 Delete
+                            </button>
+                            {% endif %}
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% else %}
+        <p style="text-align:center;color:#6b7280;margin-top:20px;">
+            You haven’t registered any vendors yet.
+        </p>
+        {% endif %}
+
+        <div style="text-align:center;margin-top:25px;">
+            <button class="btn btn-back" onclick="backToVendorFlow()">
+                ← Back to Vendors
+            </button>
+        </div>
+    </section>
+</div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+const payBtn = document.getElementById("payVerifyBtn") || null;
+const warningBox = document.getElementById("verificationWarning");
+const aiVerifiedInput = document.getElementById("aiVerified");
+    function goToEventRequest(vendorId) {
+        // Show event flow
+        window.location.href = `/events/?vendor_id=${vendorId}`;
+
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+    }
+    function toggleMenu(btn) {
+        const menu = btn.nextElementSibling;
+        document.querySelectorAll(".action-menu").forEach(m => {
+            if (m !== menu) m.classList.remove("show");
+        });
+        menu.classList.toggle("show");
+    }
+
+    document.addEventListener("click", function (e) {
+        if (!e.target.closest(".action-wrapper")) {
+            document.querySelectorAll(".action-menu").forEach(m => m.classList.remove("show"));
+        }
+    });
+    /* =========================================================
+       GLOBAL SECTION REFERENCES (for onclick buttons)
+    ========================================================= */
+    const heroSection = document.getElementById("heroSection");
+    const vendorFlow = document.getElementById("vendorFlow");
+    const vendorForm = document.getElementById("vendorForm");
+    const myVendors = document.getElementById("myVendors");
+
+    /* =========================================================
+       NAVIGATION FUNCTIONS
+    ========================================================= */
+    function showVendorFlow() {
+        heroSection.classList.add("hidden");
+        vendorForm.classList.add("hidden");
+        myVendors.classList.add("hidden");
+
+        vendorFlow.classList.remove("hidden");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function goBackToHero() {
+        vendorFlow.classList.add("hidden");
+        vendorForm.classList.add("hidden");
+        myVendors.classList.add("hidden");
+
+        heroSection.classList.remove("hidden");
+        window.scrollTo({ top: 0 });
+    }
+
+    function showVendorForm() {
+        heroSection.classList.add("hidden");
+        vendorFlow.classList.add("hidden");
+        myVendors.classList.add("hidden");
+
+        vendorForm.classList.remove("hidden");
+        window.scrollTo({ top: vendorForm.offsetTop - 20, behavior: "smooth" });
+    }
+
+    function showMyVendors() {
+        heroSection.classList.add("hidden");
+        vendorFlow.classList.add("hidden");
+        vendorForm.classList.add("hidden");
+
+        myVendors.classList.remove("hidden");
+        window.scrollTo({ top: myVendors.offsetTop - 20, behavior: "smooth" });
+    }
+
+    function backToVendorFlow() {
+        myVendors.classList.add("hidden");
+        vendorForm.classList.add("hidden");
+
+        vendorFlow.classList.remove("hidden");
+    }
+
+    /* =========================================================
+       DOM READY
+    ========================================================= */
+    document.addEventListener("DOMContentLoaded", function () {
+
+        /* ================= INDIAN NUMBER FORMAT ================= */
+        function formatIndian(num) {
+            if (!num) return "";
+            let last3 = num.slice(-3);
+            let rest = num.slice(0, -3);
+            if (rest !== "") last3 = "," + last3;
+            return rest.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + last3;
+        }
+
+        /* ================= CAPACITY & PRICE ================= */
+        const capacityInput = document.getElementById("guestCapacity");
+        const priceInput = document.getElementById("basePrice");
+        const capacityHint = document.getElementById("capacityHint");
+        const priceHint = document.getElementById("priceHint");
+
+        if (capacityInput) {
+            capacityInput.addEventListener("input", function () {
+                let raw = this.value.replace(/\D/g, "");
+
+                if (!raw) {
+                    this.value = "";
+                    capacityHint.innerText = "";
+                    return;
+                }
+
+                if (parseInt(raw) > 100000) {
+                    raw = "100000"; // 🔥 FORCE MAX
+                }
+
+                capacityHint.innerText = "Maximum allowed guests is 1,00,000";
+                this.value = formatIndian(raw);
+            });
+        }
+
+        if (priceInput) {
+            priceInput.addEventListener("input", function () {
+                let raw = this.value.replace(/\D/g, "");
+
+                if (!raw) {
+                    this.value = "";
+                    priceHint.innerText = "";
+                    return;
+                }
+
+                if (parseInt(raw) > 500000) {
+                    raw = "500000"; // 🔥 FORCE MAX
+                }
+
+                priceHint.innerText = "Maximum base price is ₹5,00,000";
+                this.value = formatIndian(raw);
+            });
+        }
+
+        /* ================= REMOVE COMMAS BEFORE SUBMIT ================= */
+        const form = document.querySelector("#vendorForm form");
+        if (form) {
+            form.addEventListener("submit", function () {
+                if (capacityInput) capacityInput.value = capacityInput.value.replace(/,/g, "");
+                if (priceInput) priceInput.value = priceInput.value.replace(/,/g, "");
+            });
+        }
+
+        /* ================= DATE & TIME VALIDATION ================= */
+        const fromInput = document.querySelector("input[name='availability_from']");
+        const toInput = document.querySelector("input[name='availability_to']");
+
+        if (fromInput && toInput) {
+            const now = new Date();
+            const localNow = new Date(
+                now.getTime() - now.getTimezoneOffset() * 60000
+            ).toISOString().slice(0, 16);
+
+            fromInput.min = localNow;
+            toInput.min = localNow;
+
+            fromInput.addEventListener("change", function () {
+                toInput.min = this.value;
+            });
+        }
+
+        /* ================= IMAGE UPLOAD (MAX 3) ================= */
+        const container = document.getElementById("image-upload-container");
+        const previewBox = document.getElementById("image-preview");
+        const maxImages = 3;
+
+        if (container) {
+            function createPreview(file) {
+                const reader = new FileReader();
+                const img = document.createElement("img");
+
+                img.style.width = "90px";
+                img.style.height = "90px";
+                img.style.objectFit = "cover";
+                img.style.borderRadius = "10px";
+                img.style.boxShadow = "0 4px 10px rgba(0,0,0,0.15)";
+
+                reader.onload = e => img.src = e.target.result;
+                reader.readAsDataURL(file);
+
+                previewBox.appendChild(img);
+            }
+
+            function addNewInput() {
+                const inputs = container.querySelectorAll(".vendorImagesInput");
+                if (inputs.length >= maxImages) return;
+
+                const input = document.createElement("input");
+                input.type = "file";
+                input.name = `vendor_image${inputs.length + 1}`;
+                input.className = "form-control vendorImagesInput mt-2";
+                input.accept = "image/*";
+
+                input.addEventListener("change", handleImageChange);
+                container.appendChild(input);
+            }
+
+            function handleImageChange(e) {
+                if (!e.target.files || !e.target.files[0]) return;
+                createPreview(e.target.files[0]);
+                addNewInput();
+            }
+
+            const firstInput = container.querySelector(".vendorImagesInput");
+            if (firstInput) firstInput.addEventListener("change", handleImageChange);
+        }
+
+    });
+    function deletevenue(vendorId) {
+        if (!confirm("Are you sure you want to delete this vendor?")) return;
+
+        fetch(`/delete_venue/${vendorId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCSRFToken(),
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success || data.status === "success") {
+                    // 🔥 TRIGGER THE GREEN ALERT (Use the function available in your base.html)
+                    if (typeof showCenterAlert === "function") {
+                        showCenterAlert("✅ " + data.message, "success");
+                    } else {
+                        alert("✅ " + data.message);
+                    }
+
+                    // ⏳ DELAY REFRESH: Give the alert 1 second to show before reloading
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    alert("❌ Failed to delete vendor");
+                }
+            })
+            .catch(err => {
+                console.error("Deletion error:", err);
+                alert("❌ Server error while deleting vendor");
+            });
+    }
+    /* =========================================================
+       EDIT VENDOR (REDIRECT WITH ALERT)
+    ========================================================= */
+    function editVendor(vendorId) {
+        alert("✏️ You can now update venue details");
+        window.location.href = `/vendor/edit/${vendorId}/`;
+    }
+
+    /* =========================================================
+       ADD / UPDATE SUCCESS ALERTS (POST REDIRECT)
+    ========================================================= */
+    document.addEventListener("DOMContentLoaded", function () {
+        const params = new URLSearchParams(window.location.search);
+
+        if (params.get("added") === "1") {
+            alert("🎉 Vendor registered successfully!");
+        }
+
+        if (params.get("updated") === "1") {
+            alert("✅ Vendor updated successfully!");
+        }
+
+        if (params.get("deleted") === "1") {
+            alert("🗑 Vendor deleted successfully!");
+        }
+    });
+
+    /* =========================================================
+       CSRF TOKEN HELPER
+    ========================================================= */
+    function getCSRFToken() {
+        const name = "csrftoken=";
+        const cookies = document.cookie.split(";");
+        for (let c of cookies) {
+            c = c.trim();
+            if (c.startsWith(name)) {
+                return c.substring(name.length);
+            }
+        }
+        return "";
+    }
+    function updateVendorStatus(vendorId, status) {
+        fetch(`/vendor/update-status/${vendorId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCSRFToken(),
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ status: status })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showCenterAlert("✅ Status updated successfully", "success");
+                } else {
+                    showCenterAlert("❌ Failed to update status", "error");
+                }
+            })
+            .catch(() => {
+                showCenterAlert("❌ Server error", "error");
+            });
+    }
+    // function fetchVendors() {
+    //     ajaxRequest({
+    //         url: "/ajax/vendors/live/",
+    //         method: "GET",
+    //         success: function (response) {
+    //             let html = "";
+
+    //             response.vendors.forEach(v => {
+    //                 html += `
+    //                 <div class="vendor-card">
+    //                     <h4>${v.name}</h4>
+    //                     <p>${v.city}</p>
+    //                 </div>
+    //             `;
+    //             });
+
+    //             document.getElementById("venues").innerHTML = html;
+    //         }
+    //     });
+    // }
+
+    // /* Initial load */
+    // fetchVendors();
+
+    // /* Auto refresh every 5 seconds */
+    // setInterval(fetchVendors, 2000);
+    document.addEventListener("DOMContentLoaded", function () {
+        const params = new URLSearchParams(window.location.search);
+        const vendorId = params.get("vendor_id");
+
+        if (!vendorId) return;
+
+        const vendorSelect = document.getElementById("vendorSelect");
+        if (!vendorSelect) return;
+
+        vendorSelect.value = vendorId;
+
+        // 🔥 Trigger existing logic (price, availability, capacity)
+        vendorSelect.dispatchEvent(new Event("change"));
+    });
+    function cancelEdit() {
+        window.location.href = "{% url 'venue' %}?tab=myvendors";
+    }
+
+
+
+
+function disablePayButton() {
+    if (!payBtn) return;
+    payBtn.disabled = true;
+    payBtn.innerText = "Verification Required";
+}
+function enablePayButton() {
+    payBtn.disabled = false;
+    payBtn.innerText = "Pay ₹1000 & Submit for Verification";
+}
+
+function showWarning(message) {
+    warningBox.style.display = "block";
+    warningBox.innerHTML = "❌ " + message;
+}
+
+function hideWarning() {
+    warningBox.style.display = "none";
+}
+
+/* 🔥 MAIN AI VERIFICATION CALL */
+function verifyDocumentsBeforePayment() {
+
+    const form = document.querySelector("#vendorForm form");
+    const formData = new FormData(form);
+
+    fetch("/verify-venue-documents/", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.verified) {
+            aiVerifiedInput.value = "1";
+            hideWarning();
+            enablePayButton();
+
+            // ✅ continue payment
+            proceedWithPayment();
+
+        } else {
+            aiVerifiedInput.value = "0";
+            disablePayButton();
+            showWarning(data.issues.join("<br>"));
+        }
+    })
+    .catch(() => {
+        showWarning("AI verification service unavailable. Try again.");
+        disablePayButton();
+    });
+}
+function proceedWithPayment() {
+
+    const payBtn = document.getElementById("payVerifyBtn");
+    const verifyInput = document.getElementById("verificationPaid");
+    const form = document.querySelector("#vendorForm form");
+
+    payBtn.disabled = true;
+    payBtn.innerText = "Processing...";
+
+    verifyInput.value = "1";
+
+    setTimeout(() => {
+        form.submit();
+    }, 1500);
+}
+
+/* 🔥 Intercept Pay button */
+document.getElementById("payVerifyBtn")?.addEventListener("click", function () {
+    disablePayButton();      // block immediately
+    verifyDocumentsBeforePayment();  // 🔥 AI check
+});
+</script>
+
+<script>
+
+        const params = new URLSearchParams(window.location.search);
+document.addEventListener("DOMContentLoaded", function () {
+
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    const openForm = params.get("open") === "form";
+
+    heroSection.classList.add("hidden");
+    vendorFlow.classList.add("hidden");
+    vendorForm.classList.add("hidden");
+    myVendors.classList.add("hidden");
+
+    // 🔥 ADD THIS BLOCK
+    const isEditMode = "{{ edit_mode|yesno:'true,false' }}" === "true";
+
+    if (isEditMode) {
+        vendorForm.classList.remove("hidden");
+    }
+    else if (openForm) {
+        vendorForm.classList.remove("hidden");
+    }
+    else if (tab === "myvendors") {
+        myVendors.classList.remove("hidden");
+    }
+    else if (tab === "explore") {
+        vendorFlow.classList.remove("hidden");
+    }
+    else {
+        heroSection.classList.remove("hidden");
+    }
+});
+    // document.getElementById("payVerifyBtn")?.addEventListener("click", function () {
+
+    //     const amount = 1000 * 100; // ₹1000 in paise
+
+    //     const options = {
+    //         key: "rzp_test_xxxxxxxx", // ✅ TEST KEY
+    //         amount: amount,
+    //         currency: "INR",
+    //         name: "Carnivalo",
+    //         description: "Vendor Verification Fee",
+
+    //         handler: function (response) {
+    //             // ✅ Mark payment success
+    //             document.getElementById("verificationPaid").value = "1";
+
+    //             // ✅ Submit form AFTER payment
+    //             document.querySelector("#vendorForm form").submit();
+    //         },
+
+    //         modal: {
+    //             ondismiss: function () {
+    //                 console.log("Payment popup closed");
+    //             }
+    //         },
+
+    //         theme: {
+    //             color: "#0d6efd"
+    //         }
+    //     };
+
+    //     const rzp = new Razorpay(options);
+    //     rzp.open();
+    // });
+const addressInput = document.getElementById("vendorAddress");
+const addressError = document.getElementById("addressError");
+const submitBtn = document.getElementById("payVerifyBtn");
+
+if (submitBtn) {
+let addressTimeout = null;
+
+addressInput?.addEventListener("input", function () {
+    const value = this.value.trim();
+
+    clearTimeout(addressTimeout);
+
+    if (value.length < 10) {
+        addressError.style.display = "none";
+        submitBtn.disabled = false;
+        return;
+    }
+
+    addressTimeout = setTimeout(() => {
+        fetch(`/api/check-vendor-address/?address=${encodeURIComponent(value)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.exists) {
+                    addressError.style.display = "block";
+                    submitBtn.disabled = true;
+                } else {
+                    addressError.style.display = "none";
+                    submitBtn.disabled = false;
+                }
+            });
+    }, 400); // ⏱ debounce (important)
+});
+}
+function viewVenue(id) {
+    window.location.href = `/venue/${id}/`;
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<!-- ================= HERO SLIDER ================= -->
+<section class="hero-slider">
+    <div class="slider" id="slider">
+        <img src="{% static 'images/slide1.jpg' %}" class="slide active" alt="Slide 1">
+        <img src="{% static 'images/slide2.jpg' %}" class="slide" alt="Slide 2">
+        <img src="{% static 'images/slide3.jpg' %}" class="slide" alt="Slide 3">
+    </div>
+
+    <div class="hero-content">
+        <h1>Create Unforgettable Events, Effortlessly</h1>
+        <p>
+            Book venues, hire services, manage approvals and payments —
+            all in one powerful event management platform.
+        </p>
+
+        <div class="hero-buttons">
+    <a href="{% url 'venue' %}" class="btn-primary">Find Venues</a>
+    <a href="{% url 'vendor' %}" class="btn-outline">List Your Service</a>
+</div>
+    </div>
+</section>
+
+<!-- ================= FEATURES ================= -->
+<section class="features-section">
+    <h2>Why Choose Carnivalo?</h2>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <h3>Verified Venues</h3>
+            <p>Browse trusted venues with secure approval and transparent pricing.</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>Reliable Vendors</h3>
+            <p>Connect with professional service providers for any event type.</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>Smart Notifications</h3>
+            <p>Get instant updates for bookings, payments and confirmations.</p>
+        </div>
+
+        <div class="feature-card">
+            <h3>All Event Types</h3>
+            <p>From college fests to weddings — manage everything seamlessly.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ================= TESTIMONIALS ================= -->
+<section class="testimonial-section">
+    <h2>Loved by Event Planners</h2>
+
+    <div class="testimonial-grid">
+        <div class="testimonial-card">
+            <p>"Carnivalo made venue booking simple and stress-free."</p>
+            <span>- Rahul M.</span>
+        </div>
+
+        <div class="testimonial-card">
+            <p>"Listing my land doubled my bookings in just weeks."</p>
+            <span>- Priya K.</span>
+        </div>
+
+        <div class="testimonial-card">
+            <p>"Perfect platform for managing college fests."</p>
+            <span>- Ananya S.</span>
+        </div>
+    </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer class="main-footer">
+    <div class="footer-content">
+        <div>
+            <h3>Carnivalo</h3>
+            <p>Smart Event Management System</p>
+        </div>
+
+        <div>
+            <h4>Quick Links</h4>
+            <a href="{% url 'index' %}">Home</a>
+            <a href="{% url 'venue' %}">Venues</a>
+            <a href="{% url 'vendor' %}">Vendors</a>
+        </div>
+
+        <div>
+            <h4>Contact</h4>
+            <p>support@carnivalo.com</p>
+            <p>+91 98765 43210</p>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        © 2026 Carnivalo. All rights reserved.
+    </div>
+</footer>
+
+{% endblock %}

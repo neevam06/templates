@@ -1,0 +1,138 @@
+{% load static %}
+      <header class="main-header">
+        <nav class="nav-container">
+          <!-- LOGO -->
+          <div class="nav-logo">
+            <a href="{% url 'index' %}" data-media-type="banani-button">
+              <!-- Preserving exact user source, added explicit dimensions for layout stability -->
+              <img
+                src="{% static 'images/FullLogo.png' %}"
+                alt="Carnivalo Logo"
+                style="width: auto; height: 40px"
+              />
+            </a>
+          </div>
+
+          <!-- MENU -->
+          <ul class="nav-links">
+            <li>
+              <!-- Added 'active' class manually to demonstrate styling -->
+              <a
+                href="{% url 'index' %}"
+                class="{% if request.resolver_match.url_name == 'index' %}active{% endif %}"
+                data-media-type="banani-button"
+              >
+                Home
+              </a>
+            </li>
+
+            <li>
+              <a
+                href="{% url 'events' %}"
+                class="{% if request.resolver_match.url_name == 'events' %}active{% endif %}"
+                data-media-type="banani-button"
+              >
+                Events
+              </a>
+            </li>
+
+            <li>
+              <a
+                href="{% url 'venue' %}"
+                class="{% if request.resolver_match.url_name == 'venue' %}active{% endif %}"
+                data-media-type="banani-button"
+              >
+                Venues
+              </a>
+            </li>
+            <li>
+              <a
+                href="{% url 'vendor' %}"
+                class="{% if request.resolver_match.url_name == 'vendor' %}active{% endif %}"
+                data-media-type="banani-button"
+              >
+                Vendors
+              </a>
+            </li>
+            <li>
+              <a
+                href="{% url 'about' %}"
+                class="{% if request.resolver_match.url_name == 'about' %}active{% endif %}"
+                data-media-type="banani-button"
+              >
+                About
+              </a>
+            </li>
+          </ul>
+
+          <!-- ACTIONS -->
+          <div class="nav-actions">
+            <!-- PROFILE -->
+            <div class="nav-profile">
+              <a
+                href="{% url 'sign_up' %}"
+                data-media-type="banani-button"
+                aria-label="Profile"
+              >
+                <!-- Preserving exact SVG as requested -->
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="22"
+                  height="22"
+                  fill="#1A237E"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 1.2c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
+                  ></path>
+                </svg>
+              </a>
+            </div>
+
+            <!-- HAMBURGER -->
+            <div
+              class="hamburger"
+              id="hamburger"
+              data-media-type="banani-button"
+            >
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </nav>
+      </header>
+      <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style>
+    :root {
+      --background: #ffffff;
+      --foreground: #0f1a2b;
+      --border: #00000014;
+      --input: #f5f7fa;
+      --primary: #1a237e;
+      --primary-foreground: #ffffff;
+      --secondary: #ffe9e0;
+      --secondary-foreground: #5a2a12;
+      --muted: #f0f2f5;
+      --muted-foreground: #8a94a6;
+      --success: #28a745;
+      --success-foreground: #ffffff;
+      --accent: #ff6b6b;
+      --accent-foreground: #ffffff;
+      --destructive: #d32f2f;
+      --destructive-foreground: #ffffff;
+      --warning: #ffc107;
+      --warning-foreground: #1f1f1f;
+      --card: #ffffff;
+      --card-foreground: #0f1a2b;
+      --sidebar: #f8faff;
+      --sidebar-foreground: #0f1a2b;
+      --sidebar-primary: #e8e9ff;
+      --sidebar-primary-foreground: #1a237e;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --radius-xl: 12px;
+      --font-family-body: Inter;
+    }
+  </style>
