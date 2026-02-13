@@ -1,0 +1,219 @@
+{% extends 'emp_base.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- ================= CALENDAR SECTION ================= -->
+<div class="card-box">
+
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2>My Availability</h2>
+    <small style="color:#6b7280;">
+      Leave must be requested at least 1 month in advance
+    </small>
+  </div>
+
+  <br>
+
+  <!-- Calendar Placeholder -->
+  <div id="availability-calendar"
+       style="
+         border:1px solid #e5e7eb;
+         border-radius:10px;
+         padding:20px;
+         min-height:350px;
+         background:#fafafa;
+         text-align:center;
+         color:#9ca3af;
+       ">
+    Calendar will be shown here
+  </div>
+
+</div>
+<div id="leaveModal"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:1000;">
+
+  <div style="
+      background:#fff;
+      width:420px;
+      margin:10% auto;
+      padding:20px;
+      border-radius:10px;
+    ">
+
+    <h3 style="margin-bottom:15px;">Request Leave</h3>
+
+    <form id="leaveForm">
+      {% csrf_token %}
+
+      <input type="hidden" id="leave_from">
+      <input type="hidden" id="leave_to">
+
+      <div class="mb-3">
+        <label>From</label>
+        <input class="form-control" id="leave_from_display" readonly>
+      </div>
+
+      <div class="mb-3">
+        <label>To</label>
+        <input class="form-control" id="leave_to_display" readonly>
+      </div>
+
+      <div class="mb-3">
+        <label>Reason</label>
+        <textarea class="form-control" id="leave_reason"
+                  rows="3" required></textarea>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button type="button"
+                class="btn btn-secondary"
+                onclick="closeLeaveModal()">Cancel</button>
+
+        <button type="submit"
+                class="btn btn-primary">Submit Request</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+<!-- ================= LEAVE HISTORY SECTION ================= -->
+<div class="card-box" style="margin-top:25px;">
+
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2>Leave Requests</h2>
+  </div>
+
+  <br>
+
+  <table class="emp-table">
+    <thead>
+      <tr>
+        <th>SR No</th>
+        <th>From</th>
+        <th>To</th>
+        <th>Reason</th>
+        <th>Status</th>
+        <th>Admin Remark</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for leave in leaves %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ leave.start_datetime|date:"d M Y H:i" }}</td>
+        <td>{{ leave.end_datetime|date:"d M Y H:i" }}</td>
+        <td>{{ leave.reason|default:"—" }}</td>
+
+        <td>
+          {% if leave.status == "PENDING" %}
+            <span style="color:#f59e0b;font-weight:600;">Pending</span>
+          {% elif leave.status == "APPROVED" %}
+            <span style="color:green;font-weight:600;">Approved</span>
+          {% elif leave.status == "REJECTED" %}
+            <span style="color:red;font-weight:600;">Rejected</span>
+          {% endif %}
+        </td>
+
+        <td>{{ leave.admin_remark|default:"—" }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;color:gray;padding:20px;">
+          No leave requests found
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+<script>
+/* ================= MODAL HANDLERS ================= */
+function openLeaveModal(fromDate, toDate) {
+  document.getElementById("leave_from").value = fromDate;
+  document.getElementById("leave_to").value = toDate;
+
+  document.getElementById("leave_from_display").value = fromDate;
+  document.getElementById("leave_to_display").value = toDate;
+
+  document.getElementById("leave_reason").value = "";
+  document.getElementById("leaveModal").style.display = "block";
+}
+
+function closeLeaveModal() {
+  document.getElementById("leaveModal").style.display = "none";
+}
+
+/* ================= SUBMIT LEAVE REQUEST ================= */
+document.addEventListener("DOMContentLoaded", function () {
+
+  const form = document.getElementById("leaveForm");
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      fetch("{% url 'create_leave_request' %}", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+          "X-Requested-With": "XMLHttpRequest",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          start: document.getElementById("leave_from").value,
+          end: document.getElementById("leave_to").value,
+          reason: document.getElementById("leave_reason").value
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        if (data.success) location.reload();
+      });
+    });
+  }
+
+  /* ================= FULLCALENDAR ================= */
+  const calendarEl = document.getElementById("availability-calendar");
+  if (!calendarEl) return;
+
+  const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: "dayGridMonth",
+    height: 350,
+
+    selectable: true,
+    selectMirror: true,
+
+    /* ⏳ 1-month advance rule */
+    validRange: function () {
+      const start = new Date();
+      start.setMonth(start.getMonth() + 1);
+      return { start };
+    },
+
+    /* MULTI-DATE SELECTION */
+    select: function (info) {
+      openLeaveModal(info.startStr, info.endStr);
+      calendar.unselect();
+    },
+
+    /* EXISTING LEAVES */
+    events: [
+      {% for leave in leaves %}
+      {
+        title: "{{ leave.status }}",
+        start: "{{ leave.start_datetime|date:'Y-m-d' }}",
+        end: "{{ leave.end_datetime|date:'Y-m-d' }}",
+        color:
+          "{% if leave.status == 'APPROVED' %}#16a34a{% elif leave.status == 'REJECTED' %}#dc2626{% else %}#f59e0b{% endif %}"
+      },
+      {% endfor %}
+    ]
+  });
+
+  calendar.render();
+});
+</script>
+{% endblock %}

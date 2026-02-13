@@ -1,284 +1,481 @@
-{% extends "admin_base.html" %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block content %}
+<div
+  class="export-wrapper"
+  style="
+    width: 1440px;
+    min-height: 812px;
+    position: relative;
+    font-family: var(--font-family-body);
+    background-color: var(--background);
+  "
+>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@100;200;300;400;500;600;700;800;900&family=Geist:wght@100;200;300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@100;200;300;400;500;600;700&family=IBM+Plex+Sans:wght@100;200;300;400;500;600;700&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Nunito:wght@200;300;400;500;600;700;800;900&family=PT+Serif:wght@400;700&family=Roboto+Slab:wght@100;200;300;400;500;600;700;800;900&family=Roboto:wght@100;300;400;500;700;900&family=Shantell+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+      <div
+        class="export-wrapper"
+        style="
+          width: 1440px;
+          min-height: 812px;
+          position: relative;
+          background-color: var(--background);
+          color: var(--foreground);
+          font-family: var(--font-family-body);
+        "
+      >
+        <div class="about-container">
+          <!-- Hero -->
+          <div class="container">
+            <section class="hero-section">
+              <span class="hero-label">Our Mission</span>
+              <h1 class="hero-title">
+                Bringing the world together, one carnival at a time.
+              </h1>
+              <p class="hero-sub">
+                We believe in the power of shared joy. Carnivalo helps
+                communities discover, organize, and celebrate local festivals
+                with ease and excitement.
+              </p>
 
+              <div class="hero-image-container">
+                <img
+                  src="https://storage.googleapis.com/banani-generated-images/generated-images/8fdb9be9-0e2e-429b-bdcd-26106322b054.jpg"
+                  alt="Carnival crowd"
+                  data-aspect-ratio="16:9"
+                  data-query="colorful street carnival festival parade confetti happy crowd bright colors, carnivalo bright palette"
+                />
+              </div>
+            </section>
+          </div>
 
-<div class="admin-dashboard">
+          <!-- Stats -->
+          <div class="stats-section">
+            <div class="container">
+              <div class="grid-4">
+                <div class="stat-item">
+                  <div class="stat-value">10k+</div>
+                  <div class="stat-label">Events Organized</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value">2.5M</div>
+                  <div class="stat-label">Happy Attendees</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value">120</div>
+                  <div class="stat-label">Cities Worldwide</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value">4.9</div>
+                  <div class="stat-label">App Store Rating</div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-  <!-- ================= KPI CARDS ================= -->
-  <div class="kpi-grid">
+          <!-- Story/Mission -->
+          <section class="section">
+            <div class="container">
+              <div class="grid-2">
+                <div>
+                  <h2 class="section-title">
+                    It started with a simple block party.
+                  </h2>
+                  <p class="section-text">
+                    Founded in 2021, Carnivalo was born out of a desire to
+                    reconnect neighbors after years of distance. What began as a
+                    small tool to help manage a neighborhood street fair in Rio
+                    has grown into a global platform.
+                  </p>
+                  <p class="section-text">
+                    Today, we empower organizers—from small town committees to
+                    major event production companies—to create unforgettable
+                    experiences. We handle the logistics, ticketing, and
+                    promotion so you can focus on the magic.
+                  </p>
+                </div>
+                <div class="story-image-wrapper">
+                  <img
+                    src="https://storage.googleapis.com/banani-generated-images/generated-images/12a3b01f-da19-40eb-a575-55969cf63aa7.jpg"
+                    alt="Team working"
+                    data-aspect-ratio="4:3"
+                    data-query="startup team diverse happy working on whiteboard event planning, carnivalo bright palette"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
 
-    <div class="kpi-card gradient-blue">
-      <div class="kpi-icon"><i class="fas fa-calendar-check"></i></div>
-      <div class="kpi-info">
-        <span>Total Events</span>
-        <h2>{{ total_events }}</h2>
+          <!-- Values -->
+          <section class="section values-section">
+            <div class="container">
+              <div class="values-header">
+                <h2 class="section-title">Our Core Values</h2>
+                <p class="section-text values-intro">
+                  We're guided by a set of principles that ensure every event we
+                  touch is safe, inclusive, and undeniably fun.
+                </p>
+              </div>
+
+              <div class="grid-3">
+                <div class="story-card">
+                  <div class="icon-box">
+                    <div
+                      style="
+                        width: 24px;
+                        height: 24px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: var(--primary);
+                      "
+                    >
+                      <iconify-icon
+                        icon="lucide:heart"
+                        style="font-size: 24px; color: var(--primary)"
+                      ></iconify-icon>
+                    </div>
+                  </div>
+                  <h3 class="value-title">Community First</h3>
+                  <p class="value-desc">
+                    Events aren't just about entertainment; they're about
+                    belonging. We prioritize local connection in everything we
+                    build.
+                  </p>
+                </div>
+
+                <div class="story-card">
+                  <div class="icon-box">
+                    <div
+                      style="
+                        width: 24px;
+                        height: 24px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: var(--primary);
+                      "
+                    >
+                      <iconify-icon
+                        icon="lucide:party-popper"
+                        style="font-size: 24px; color: var(--primary)"
+                      ></iconify-icon>
+                    </div>
+                  </div>
+                  <h3 class="value-title">Unbridled Joy</h3>
+                  <p class="value-desc">
+                    Life is too short for boring events. We design for delight,
+                    surprise, and those "wow" moments that become memories.
+                  </p>
+                </div>
+
+                <div class="story-card">
+                  <div class="icon-box">
+                    <div
+                      style="
+                        width: 24px;
+                        height: 24px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: var(--primary);
+                      "
+                    >
+                      <iconify-icon
+                        icon="lucide:shield-check"
+                        style="font-size: 24px; color: var(--primary)"
+                      ></iconify-icon>
+                    </div>
+                  </div>
+                  <h3 class="value-title">Safety &amp; Trust</h3>
+                  <p class="value-desc">
+                    Fun requires peace of mind. We provide robust tools for
+                    crowd management, ticketing security, and verified
+                    organizers.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- CTA -->
+        </div>
       </div>
-    </div>
 
-    <div class="kpi-card gradient-green">
-      <div class="kpi-icon"><i class="fas fa-map-location-dot"></i></div>
-      <div class="kpi-info">
-        <span>Total Vendors</span>
-        <h2>{{ total_events }}</h2>
-      </div>
-    </div>
-
-    <div class="kpi-card gradient-orange">
-      <div class="kpi-icon"><i class="fas fa-user-tie"></i></div>
-      <div class="kpi-info">
-        <span>Employees</span>
-        <h2>{{ total_employees }}</h2>
-      </div>
-    </div>
-
-    <div class="kpi-card gradient-purple">
-      <div class="kpi-icon"><i class="fas fa-clock"></i></div>
-      <div class="kpi-info">
-        <span>Pending Requests</span>
-        <h2>{{ pending_requests }}</h2>
-      </div>
-    </div>
-
-<div class="kpi-card gradient-emerald">
-  <div class="kpi-icon">
-    <i class="fas fa-coins"></i>
-  </div>
-  <div class="kpi-info">
-    <span>Total Commission Collected</span>
-    <h2>₹ {{ total_commission }}</h2>
-  </div>
-</div>
-  </div>
-
-  <!-- ================= MAIN GRID ================= -->
-  <div class="dashboard-grid">
-
-    <!-- LEFT -->
-    <div class="dashboard-card">
-      <h3>📋 Recent Events</h3>
-
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Event</th>
-            <th>Date</th>
-            <th>Location</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-            {% for e in recent_events %}
-              <tr>
-                <td>{{ e.event_type.event_type }}</td>
-                <td>{{ e.from_datetime|date:"d M Y" }}</td>
-                <td>{{ e.vendor.vendor_name }}</td>
-                <td>
-                  {% if e.status == "APPROVED" or e.status == "SERVICE_DONE" %}
-                    <span class="badge success">Approved</span>
-                  {% elif e.status == "PENDING" %}
-                    <span class="badge warning">Pending</span>
-                  {% else %}
-                    <span class="badge">{{ e.status }}</span>
-                  {% endif %}
-                </td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="4" style="text-align:center;color:#9ca3af;">
-                  No recent events
-                </td>
-              </tr>
-              {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- RIGHT -->
-    <div class="dashboard-card">
-      <h3>🏢 Vendor Status</h3>
-
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Vendor</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-  {% for v in vendor_status %}
-  <tr>
-    <td>{{ v.vendor_name }}</td>
-    <td>
-      {% if v.status == "AVAILABLE" or v.status == "APPROVED" %}
-        <span class="badge success">Approved</span>
-      {% elif v.status == "PENDING" %}
-        <span class="badge warning">Pending</span>
-      {% else %}
-        <span class="badge">{{ v.status }}</span>
-      {% endif %}
-    </td>
-  </tr>
-  {% empty %}
-  <tr>
-    <td colspan="2" style="text-align:center;color:#9ca3af;">
-      No vendors found
-    </td>
-  </tr>
-  {% endfor %}
-</tbody>
-      </table>
-    </div>
-
-  </div>
-<div class="dashboard-grid" style="margin-top:30px;">
-
-  <!-- LEFT CHART -->
-  <div class="dashboard-card">
-    <h3>📊 Events by Status</h3>
-    <canvas id="eventStatusChart" height="120"></canvas>
-  </div>
-
-  <!-- RIGHT CHART -->
-  <div class="dashboard-card">
-    <h3>📈 Events per Month</h3>
-    <canvas id="eventsMonthChart" height="120"></canvas>
-  </div>
-    <div class="dashboard-card">
-    <h3>💰 Service payment by Month</h3>
-    <canvas id="serviceRevenueChart" height="120"></canvas>
-  </div>
-    <div class="dashboard-card">
-    <h3>👥 Users Registered by Month</h3>
-    <canvas id="usersMonthChart" height="120"></canvas>
-  </div>
-  <div class="dashboard-card">
-  <h3>💰 Commission Collected by Month</h3>
-  <canvas id="commissionChart" height="120"></canvas>
-</div>
-</div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  const eventStatusData = {{ event_status_chart|safe }};
-
-new Chart(document.getElementById("eventStatusChart"), {
-  type: "bar",
-  data: {
-    labels: eventStatusData.map(e => e.status),
-    datasets: [{
-      label: "Events",
-      data: eventStatusData.map(e => e.total),
-      backgroundColor: ["#f59e0b", "#10b981", "#3b82f6"]
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { display: false }
-    }
-  }
-});
-const commissionData = {{ commission_chart|safe }};
-
-new Chart(document.getElementById("commissionChart"), {
-  type: "bar",
-  data: {
-    labels: commissionData.map(e => e.month),
-    datasets: [{
-      label: "Commission (₹)",
-      data: commissionData.map(e => e.total),
-      backgroundColor: "#f59e0b",
-      borderRadius: 8
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { display: false }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          callback: function(value) {
-            return "₹ " + value;
-          }
+      <style id="about-base-styles">
+        * {
+          box-sizing: border-box;
         }
-      }
-    }
-  }
-});
-/* ---------- EVENTS PER MONTH CHART ---------- */
-const eventsMonthData = {{ events_month_chart|safe }};
 
-new Chart(document.getElementById("eventsMonthChart"), {
-  type: "line",
-  data: {
-    labels: eventsMonthData.map(e => e.month),
-    datasets: [{
-      label: "Events",
-      data: eventsMonthData.map(e => e.total),
-      borderColor: "#6366f1",
-      backgroundColor: "rgba(99,102,241,0.2)",
-      fill: true,
-      tension: 0.4
-    }]
-  },
-  options: {
-    responsive: true
-  }
-});
-const serviceRevenueData = {{ service_revenue_chart|safe }};
-
-new Chart(document.getElementById("serviceRevenueChart"), {
-  type: "bar",
-  data: {
-    labels: serviceRevenueData.map(e => e.month),
-    datasets: [{
-      label: "Revenue (₹)",
-      data: serviceRevenueData.map(e => e.total),
-      backgroundColor: "#10b981",
-      borderRadius: 8
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: {
-      legend: { display: false }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          callback: function(value) {
-            return "₹ " + value;
-          }
+        .about-container {
+          width: 100%;
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 0 24px 96px 24px;
         }
-      }
-    }
-  }
-});
-const usersMonthData = {{ users_month_chart|safe }};
 
-new Chart(document.getElementById("usersMonthChart"), {
-  type: "line",
-  data: {
-    labels: usersMonthData.map(e => e.month),
-    datasets: [{
-      label: "Users",
-      data: usersMonthData.map(e => e.total),
-      borderColor: "#3b82f6",
-      backgroundColor: "rgba(59,130,246,0.2)",
-      fill: true,
-      tension: 0.4
-    }]
-  },
-  options: {
-    responsive: true
-  }
-});
-</script>
+        .container {
+          width: 100%;
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 0 24px;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p {
+          margin: 0;
+        }
+
+        .grid-2 {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 64px;
+          align-items: center;
+        }
+
+        .grid-3 {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 32px;
+        }
+
+        .grid-4 {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 24px;
+        }
+      </style>
+
+      <style id="about-hero-styles">
+        .hero-section {
+          padding: 96px 0;
+          text-align: center;
+          max-width: 800px;
+          margin: 0 auto;
+        }
+
+        .hero-label {
+          color: var(--primary);
+          font-weight: 600;
+          font-size: 14px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 16px;
+          display: block;
+        }
+
+        .hero-title {
+          font-size: 40px;
+          font-weight: 800;
+          line-height: 1.1;
+          letter-spacing: -0.02em;
+          margin-bottom: 24px;
+          color: var(--foreground);
+        }
+
+        .hero-sub {
+          font-size: 18px;
+          line-height: 1.6;
+          color: var(--muted-foreground);
+          margin-bottom: 0;
+        }
+
+        .hero-image-container {
+          margin-top: 64px;
+          border-radius: var(--radius-xl);
+          overflow: hidden;
+          height: 400px;
+          width: 100%;
+          position: relative;
+        }
+
+        .hero-image-container img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      </style>
+
+      <style id="about-stats-styles">
+        .stats-section {
+          padding: 64px 0;
+          border-bottom: 1px solid var(--border);
+          background: var(--muted);
+          margin-top: 24px;
+        }
+
+        .stat-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+        }
+
+        .stat-value {
+          font-size: 32px;
+          font-weight: 800;
+          color: var(--primary);
+          line-height: 1;
+          margin-bottom: 8px;
+        }
+
+        .stat-label {
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--muted-foreground);
+        }
+      </style>
+
+      <style id="about-story-values-styles">
+        .section {
+          padding: 96px 0;
+        }
+
+        .section-title {
+          font-size: 28px;
+          font-weight: 700;
+          margin-bottom: 24px;
+          letter-spacing: -0.01em;
+          color: var(--foreground);
+        }
+
+        .section-text {
+          font-size: 16px;
+          line-height: 1.7;
+          color: var(--muted-foreground);
+          margin-bottom: 24px;
+        }
+
+        .story-image-wrapper {
+          height: 360px;
+          border-radius: var(--radius-lg);
+          overflow: hidden;
+        }
+
+        .story-image-wrapper img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .values-section {
+          background: var(--muted);
+        }
+
+        .values-header {
+          text-align: center;
+          max-width: 600px;
+          margin: 0 auto 64px;
+        }
+
+        .values-intro {
+          font-size: 15px;
+        }
+
+        .story-card {
+          padding: 32px;
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-lg);
+        }
+
+        .icon-box {
+          width: 48px;
+          height: 48px;
+          border-radius: var(--radius-md);
+          background: var(--secondary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 20px;
+        }
+
+        .value-title {
+          font-size: 18px;
+          font-weight: 600;
+          margin-bottom: 12px;
+          color: var(--foreground);
+        }
+
+        .value-desc {
+          font-size: 14px;
+          line-height: 1.6;
+          color: var(--muted-foreground);
+        }
+      </style>
+
+      <style id="about-cta-styles">
+        .cta-section {
+          padding: 96px 0;
+          background: var(--primary);
+          color: var(--primary-foreground);
+          text-align: center;
+        }
+
+        .cta-title {
+          font-size: 32px;
+          font-weight: 800;
+          margin-bottom: 24px;
+        }
+
+        .cta-sub {
+          font-size: 16px;
+          margin-bottom: 32px;
+          opacity: 0.9;
+          max-width: 600px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+        .cta-button {
+          background: var(--card);
+          color: var(--primary);
+          border: none;
+          padding: 16px 32px;
+          font-size: 15px;
+          font-weight: 700;
+          border-radius: var(--radius-md);
+          cursor: pointer;
+        }
+      </style>
+      
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style>
+    :root {
+      --foreground: #1b2330;
+      --border: #00000014;
+      --input: #ffffff;
+      --primary-foreground: #ffffff;
+      --secondary-foreground: #5a3a2a;
+      --muted: #f4ece8;
+      --muted-foreground: #8c7f78;
+      --success: #1ec27a;
+      --success-foreground: #ffffff;
+      --accent: #ffd54a;
+      --accent-foreground: #2b2b2b;
+      --destructive-foreground: #ffffff;
+      --warning: #ffb74d;
+      --warning-foreground: #2b2b2b;
+      --card: #ffffff;
+      --card-foreground: #1b2330;
+
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --radius-xl: 12px;
+      --font-family-body: Inter;
+    }
+  </style>
+</div>
+
 {% endblock %}

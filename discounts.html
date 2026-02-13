@@ -1,0 +1,161 @@
+{% extends 'admin_base.html' %}
+{% block content %}
+
+<!-- FORM SECTION -->
+<section id="formSection" style="display:none;">
+<div class="card-box">
+<div class="user-table-container1">
+
+<h2>
+{% if view_discount %}
+    {% if view_mode %}View Discount{% else %}Update Discount{% endif %}
+{% else %}
+    Add Discount
+{% endif %}
+</h2>
+
+<form method="POST">
+{% csrf_token %}
+
+{% if view_discount %}
+<input type="hidden" name="discount_id" value="{{ view_discount.id }}">
+{% endif %}
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+
+<select name="discount_type"
+        class="form-control"
+        {% if view_mode %}disabled{% endif %}
+        required>
+
+<option value="">Select Type</option>
+
+<option value="VENUE"
+{% if view_discount.discount_type == "VENUE" %}selected{% endif %}>
+Venue Booking
+</option>
+
+<option value="SERVICE"
+{% if view_discount.discount_type == "SERVICE" %}selected{% endif %}>
+Service Assigned
+</option>
+
+</select>
+
+<input type="number"
+       name="min_amount"
+       placeholder="From Amount"
+       class="form-control"
+       value="{{ view_discount.min_amount|default:'' }}"
+       {% if view_mode %}readonly{% endif %}
+       required>
+
+<input type="number"
+       name="max_amount"
+       placeholder="To Amount"
+       class="form-control"
+       value="{{ view_discount.max_amount|default:'' }}"
+       {% if view_mode %}readonly{% endif %}
+       required>
+
+<input type="number"
+       name="discount_percent"
+       placeholder="Discount %"
+       step="0.1"
+       class="form-control"
+       value="{{ view_discount.discount_percent|default:'' }}"
+       {% if view_mode %}readonly{% endif %}
+       required>
+
+</div>
+
+<div style="margin-top:20px; text-align:right;">
+
+{% if not view_mode %}
+<button type="submit" class="commission-btn">
+{% if view_discount %}Update Discount{% else %}+ Add Discount{% endif %}
+</button>
+{% endif %}
+
+<a href="{% url 'vendor_bundles' %}" class="commission-btn">
+Cancel
+</a>
+
+</div>
+</form>
+</div>
+</div>
+</section>
+
+<!-- TABLE SECTION -->
+<div class="card-box" id="tableSection">
+<div class="user-table-container1">
+
+<div style="display:flex; justify-content:space-between;">
+<h2>Booking Discounts</h2>
+
+<button class="btn btn-success" onclick="showForm()">
+<i class="fas fa-plus"></i> Add Discount
+</button>
+</div>
+
+<table class="emp-table">
+<thead>
+<tr>
+<th>Type</th>
+<th>Amount Range</th>
+<th>Discount (%)</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody>
+{% for d in discounts %}
+<tr>
+<td>{{ d.get_discount_type_display }}</td>
+<td>₹ {{ d.min_amount }} - ₹ {{ d.max_amount }}</td>
+<td>{{ d.discount_percent }} %</td>
+
+<td class="inline-actions">
+
+<a href="{% url 'view_discount' d.id %}" class="action-pill view">
+<i class="fas fa-eye"></i>
+</a>
+
+<a href="{% url 'update_discount' d.id %}" class="action-pill edit">
+<i class="fas fa-pen"></i>
+</a>
+
+<a href="{% url 'delete_discount' d.id %}"
+   class="action-pill delete"
+   onclick="return confirm('Delete this discount?');">
+<i class="fas fa-trash"></i>
+</a>
+
+</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="4" style="text-align:center;">No discounts added</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+</div>
+</div>
+
+<script>
+function showForm(){
+document.getElementById("tableSection").style.display="none";
+document.getElementById("formSection").style.display="block";
+}
+
+document.addEventListener("DOMContentLoaded", function(){
+{% if view_discount %}
+showForm();
+{% endif %}
+});
+</script>
+
+{% endblock %}

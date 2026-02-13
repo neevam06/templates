@@ -1,0 +1,293 @@
+{% extends "admin_base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<!-- ================= VIEW VENDOR FORM ================= -->
+<section class="manage-employees-section"
+         id="formSection"
+         {% if view_mode != "vendor" %}style="display:none;"{% endif %}>
+
+    <div class="form-container">
+        <h3 style="margin-bottom:20px;">View Vendor</h3>
+
+        {% if view_vendor %}
+        <form>
+{% csrf_token %}
+            <div class="mb-3">
+                <label>Company Name</label>
+                <input class="form-control" value="{{ view_vendor.company_name }}" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label>Vendor Type</label>
+                <input class="form-control" value="{{ view_vendor.vendor_type|title }}" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label>Owner Name</label>
+                <input class="form-control" value="{{ view_vendor.owner_name }}" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label>Phone</label>
+                <input class="form-control" value="{{ view_vendor.phone_number }}" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label>Email</label>
+                <input class="form-control" value="{{ view_vendor.email }}" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label>Service City</label>
+                <input class="form-control" value="{{ view_vendor.service_city }}" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label>Description</label>
+                <textarea class="form-control" rows="3" readonly>
+{{ view_vendor.description }}
+                </textarea>
+            </div>
+            <div class="mb-3">
+    <label>Years of Experience</label>
+    <input class="form-control"
+           value="{{ view_vendor.experience_years }}"
+           readonly>
+</div>
+
+<div class="mb-3">
+    <label>Price Type</label>
+    <input class="form-control"
+           value="{{ view_vendor.price_type|title }}"
+           readonly>
+</div>
+{% if view_vendor.images.all %}
+<div class="mb-3">
+    <label style="font-weight:600;">Vendor Images</label>
+
+    <div class="vendor-media-grid">
+        {% for img in view_vendor.images.all %}
+        <a href="{{ img.image.url }}"
+           target="_blank"
+           class="vendor-media-card">
+
+            <img src="{{ img.image.url }}">
+            <div class="vendor-media-label">
+                Image {{ forloop.counter }}
+            </div>
+
+        </a>
+        {% endfor %}
+
+    </div>
+</div>
+{% endif %}
+<br>
+    <h5 style="margin-top:25px;">Additional Vendor Details</h5>
+
+{% for item in dynamic_values %}
+    <div class="mb-3">
+        <label>{{ item.field.label }}</label>
+
+        {% if item.field.field_type == "file" or item.field.field_type == "image" %}
+            <a href="{{ item.file.url }}" target="_blank">
+                View {{ item.field.label }}
+            </a>
+{% elif item.field.field_type == "pricing_group" %}
+    <table class="table table-sm table-bordered mt-2">
+        <thead>
+            <tr>
+                <th>Option</th>
+                {% for col in item.field.pricing_columns.all %}
+                    <th>{{ col.label }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in item.parsed_rows %}
+                <tr>
+                    <td>{{ row.option }}</td>
+                    {% for col in item.field.pricing_columns.all %}
+                        <td>{{ row|get_item:col.key }}</td>
+                    {% endfor %}
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="10" style="text-align:center;">
+                        No pricing data
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+        {% else %}
+            {% if item.field.field_type == "checkbox" %}
+    <input class="form-control"
+           value="{% if item.value %}Yes{% else %}No{% endif %}"
+           readonly>
+{% else %}
+    <input class="form-control" value="{{ item.value }}" readonly>
+{% endif %}
+        {% endif %}
+    </div>
+{% empty %}
+    <p style="color:#6b7280;">No additional fields submitted.</p>
+{% endfor %}
+
+            <!-- STATUS + ACTIONS -->
+            <div class="mb-3">
+                <label>Status</label>
+                <div style="display:flex;align-items:center;gap:12px;">
+
+<span class="badge
+    {% if view_vendor.status == 'AVAILABLE' %}success
+    {% elif view_vendor.status == 'ACTIVE' %}warning
+    {% elif view_vendor.status == 'UNAVAILABLE' %}secondary
+    {% elif view_vendor.status == 'BLOCKED' %}danger
+    {% endif %}">
+    {{ view_vendor.get_status_display }}
+</span>
+                </div>
+            </div>
+
+            <div class="button-center">
+<button type="button"
+        class="btn btn-secondary"
+        onclick="window.location.href='{% url "managedepartment" %}'">
+    Cancel
+</button>
+            </div>
+
+        </form>
+        {% endif %}
+    </div>
+</section>
+
+<!-- ================= VENDOR TABLE ================= -->
+<div class="card-box"
+     id="tableSection"
+     {% if view_mode == "vendor" %}style="display:none;"{% endif %}>
+
+    <div class="card-header">
+        <h2>Manage Vendors</h2>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="emp-table">
+            <thead>
+                <tr>
+                    <th>SR NO</th>
+                    <th>Company</th>
+                    <th>Vendor Type</th>
+                    <th>City</th>
+                    <th>Phone</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for v in vendors %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ v.company_name }}</td>
+                    <td>{{ v.vendor_type|title }}</td>
+                    <td>{{ v.service_city }}</td>
+                    <td>{{ v.phone_number }}</td>
+                    <td>
+                            <span style="font-weight:600;
+                                {% if v.status == 'AVAILABLE' %}color:green;
+                                {% elif v.status == 'ACTIVE' %}color:orange;
+                                {% elif v.status == 'UNAVAILABLE' %}color:#6b7280;
+                                {% elif v.status == 'BLOCKED' %}color:red;
+                            {% else %}color:#777;{% endif %}">
+                                {{ v.get_status_display }}
+                            </span>
+                    </td>
+
+                    <td class="inline-actions">
+
+    <a href="{% url 'view_vendor' v.id %}"
+       class="action-pill view"
+       title="View Vendor">
+        <i class="fas fa-eye"></i>
+    </a>
+
+    {% if v.status == "PENDING" %}
+    <button type="button"
+            class="action-pill approve"
+            onclick="approveVendor(event, {{ v.id }})">
+        <i class="fas fa-check"></i>
+    </button>
+
+    <button type="button"
+            class="action-pill reject"
+            onclick="rejectVendor(event, {{ v.id }})">
+        <i class="fas fa-times"></i>
+    </button>
+    {% endif %}
+
+</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align:center;color:#888;">
+                        No vendors found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ================= JS ================= -->
+<script>
+    function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+function approveVendor(event, vendorId) {
+    event.preventDefault();
+
+    fetch(`/vendors/approve/${vendorId}/`, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCSRFToken(),
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        location.reload();
+    })
+    .catch(err => console.error(err));
+}
+
+function rejectVendor(event, vendorId) {
+    event.preventDefault();
+
+    fetch(`/vendors/reject/${vendorId}/`, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCSRFToken(),
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+            reason: "Documents invalid"
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        location.reload();
+    })
+    .catch(err => console.error(err));
+}
+</script>
+
+{% endblock %}

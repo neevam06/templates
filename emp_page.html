@@ -1,0 +1,65 @@
+{% extends 'emp_base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="card-box">
+
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2>My Assigned Events</h2>
+    <span>Welcome, <b>{{ request.session.employee_name }}</b></span>
+  </div>
+
+  <br>
+
+  <table class="emp-table">
+    <thead>
+      <tr>
+        <th>SR No</th>
+        <th>User email</th>
+        <th>Vendor</th>
+        <th>From Date</th>
+        <th>To Date</th>
+        <th>Total Amount</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for event in events %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ event.user.email }}</td>
+        <td>{{ event.vendor.vendor_name }}</td>
+        <td>{{ event.from_datetime|date:"d-m-Y h:i A" }}</td>
+        <td>{{ event.to_datetime|date:"d-m-Y h:i A" }}</td>
+<td>
+    {% if event.total_amount and event.total_amount > 0 %}
+        ₹ {{ event.total_amount }}
+    {% else %}
+        —
+    {% endif %}
+</td>
+        <td>
+  {% if event.status == "SERVICE_DONE" %}
+    <span style="color:#0d6efd;font-weight:600;">Services Allocated</span>
+  {% elif event.status == "ASSIGNED" %}
+    <span style="color:green;font-weight:600;">Assigned</span>
+  {% else %}
+    <span style="color:gray;">Pending</span>
+  {% endif %}
+</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" style="text-align:center;color:gray;">
+          No events assigned to you
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<head>
+  <script>
+    history.pushState(null, null, location.href);
+    window.onpopstate = function () {
+        history.go(1);
+    };
+</script>
+</head>
+<div class="payment-wrapper">
+  <div class="payment-card">
+
+    <h2>Venue Payment</h2>
+
+    <div class="payment-row">
+      <span>Event</span>
+      <span>{{ event.event_type }}</span>
+    </div>
+
+    <div class="payment-row">
+      <span>Venue</span>
+      <span>{{ event.vendor.vendor_name }}</span>
+    </div>
+
+    <hr>
+
+    <div class="payment-row total">
+      <span>Total Venue Cost</span>
+      <span>₹ {{ venue_cost }}</span>
+    </div>
+    <div class="payment-row">
+  <span>Duration</span>
+  <span>{{ duration_days }} day(s)</span>
+</div>
+
+<div class="payment-row">
+  <span>Commission</span>
+  <span>₹ {{ commission }}</span>
+</div>
+
+<div class="payment-row">
+  <span>Discount</span>
+  <span>- ₹ {{ discount }}</span>
+</div>
+
+<hr>
+
+<div class="payment-row total">
+  <span>Final Amount</span>
+  <span>₹ {{ final_amount }}</span>
+</div>
+    <form method="POST" action="{% url 'venue_payment_confirm' %}">
+      {% csrf_token %}
+    <button type="submit" class="pay-btn">
+        Confirm & Pay ₹ {{ final_amount }}
+    </button>
+    </form>
+
+  </div>
+</div>
+
+{% endblock %}

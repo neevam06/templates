@@ -1,0 +1,336 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carnivalo Admin</title>
+
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+  <link rel="icon" href="{% static 'images/FullLogo.png' %}">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    crossorigin="anonymous">
+    
+</head>
+
+<body>
+
+  <!-- ================= GLOBAL ALERT ================= -->
+  <div id="global-alert" class="alert-wrapper hidden">
+    <div class="alert-card" id="alert-card">
+      <div class="alert-left">
+        <i id="alert-icon" class="fa-solid fa-circle-check"></i>
+        <span id="alert-text"></span>
+      </div>
+      <button class="alert-btn" onclick="closeGlobalAlert()">OK</button>
+    </div>
+  </div>
+
+  <!-- ================= DJANGO FLASH MESSAGE (ONLY ONE) ================= -->
+  {% if messages %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      {% for message in messages %}
+      showGlobalAlert(
+        "{{ message.tags|default:'success' }}",
+        "{{ message|escapejs }}"
+      );
+      return;  // 🔥 VERY IMPORTANT — only show ONE message
+      {% endfor %}
+    });
+  </script>
+  {% endif %}
+
+  <!-- ================= HEADER ================= -->
+  <button class="mobile-menu-btn" onclick="toggleSidebar()">
+    ☰
+  </button>
+
+  <!-- Overlay -->
+  <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+  <div class="page-header">
+
+    <!-- LEFT: Page title -->
+    <div class="page-title-wrapper">
+      <i class="fas {{ page_icon|default:'fa-chart-line' }}"></i>
+      <span class="page-divider"></span>
+      <span class="page-title">
+        {{ page_title|default:"Dashboard" }}
+      </span>
+    </div>
+
+    <!-- RIGHT: Profile dropdown -->
+    <div class="admin-profile">
+      
+      <button class="profile-btn" onclick="toggleProfileMenu(event)">
+        <i class="fas fa-user-circle"></i>
+        <span>Admin</span>
+        <i class="fas fa-chevron-down"></i>
+      </button>
+
+      <div class="profile-dropdown" id="profileDropdown">
+
+        <a href="#" class="profile-item">
+          <i class="fas fa-user"></i> Profile
+        </a>
+
+        <div class="profile-divider"></div>
+
+        <form method="post" action="{% url 'admin_logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="profile-item logout">
+            <i class="fas fa-sign-out-alt"></i> Log out
+          </button>
+        </form>
+
+      </div>
+    </div>
+
+  </div>
+
+  {% include 'sidebar.html' %}
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+  <!-- ================= CONTENT ================= -->
+  <div class="admin-content">
+    {% block content %}
+    {% endblock %}
+  </div>
+<div id="confirmModal" class="custom-modal hidden">
+  <div class="custom-modal-box">
+    <h3 id="confirmTitle"></h3>
+    <p id="confirmMessage"></p>
+
+    <div class="modal-actions">
+      <button id="confirmOk" class="btn btn-success">OK</button>
+      <button onclick="closeConfirmModal()" class="btn btn-secondary">Cancel</button>
+    </div>
+  </div>
+</div>
+  <!-- ================= SCRIPTS ================= -->
+  <script>
+function getCSRFToken() {
+    const name = "csrftoken=";
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const ca = decodedCookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i].trim();
+        if (c.indexOf(name) === 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+let confirmCallback = null;
+
+function openConfirmModal(title, message, callback) {
+    document.getElementById("confirmTitle").innerText = title;
+    document.getElementById("confirmMessage").innerText = message;
+    document.getElementById("confirmModal").style.display = "flex";
+    confirmCallback = callback;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const okBtn = document.getElementById("confirmOk");
+    if (okBtn) {
+        okBtn.onclick = function () {
+            if (confirmCallback) confirmCallback();
+            document.getElementById("confirmModal").style.display = "none";
+        };
+    }
+});
+function getCSRFToken() {
+    return document.cookie
+        .split("; ")
+        .find(row => row.startsWith("csrftoken="))
+        ?.split("=")[1];
+}
+    /* ================= SIDEBAR ACTIVE ================= */
+    document.addEventListener("DOMContentLoaded", function () {
+      const currentPath = window.location.pathname;
+      document.querySelectorAll(".sidebar a").forEach(link => {
+        if (link.getAttribute("href") === currentPath) {
+          link.querySelector("li")?.classList.add("active");
+        }
+      });
+    });
+
+    /* ================= GLOBAL ALERT FUNCTIONS ================= */
+    let redirectAfterAlert = null;
+    let alertTimer = null;
+
+    function showGlobalAlert(type, message, redirectUrl = null) {
+      if (!message || message.trim() === "") return;
+
+      const wrapper = document.getElementById("global-alert");
+      const card = document.getElementById("alert-card");
+      const text = document.getElementById("alert-text");
+      const icon = document.getElementById("alert-icon");
+
+      card.className = "alert-card " + type;
+      text.innerText = message;
+
+      icon.className =
+        type === "success" ? "fa-solid fa-circle-check" :
+          type === "error" ? "fa-solid fa-circle-xmark" :
+            "fa-solid fa-triangle-exclamation";
+
+      wrapper.classList.remove("hidden");
+      redirectAfterAlert = redirectUrl;
+
+      /* 🔥 AUTO CLOSE AFTER 3 SECONDS */
+      if (alertTimer) clearTimeout(alertTimer);
+      alertTimer = setTimeout(() => {
+        closeGlobalAlert();
+      }, 3000);
+    }
+
+    function closeGlobalAlert() {
+      document.getElementById("global-alert").classList.add("hidden");
+
+      if (alertTimer) {
+        clearTimeout(alertTimer);
+        alertTimer = null;
+      }
+
+      if (redirectAfterAlert) {
+        window.location.href = redirectAfterAlert;
+      }
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+
+      document.querySelectorAll("form.ajax-form").forEach(form => {
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          fetch(form.action, {
+            method: "POST",
+            body: new FormData(form),
+            headers: {
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          })
+            .then(res => res.json())
+            .then(data => {
+              showGlobalAlert(data.status, data.message);
+
+              if (data.redirect) {
+                setTimeout(() => {
+                  window.location.href = data.redirect;
+                }, 800);
+              }
+            })
+            .catch(() => {
+              showGlobalAlert("error", "Something went wrong");
+            });
+        });
+      });
+
+    });
+    let dropdown = document.getElementById("profileDropdown");
+    let profileBtn = document.querySelector(".profile-btn");
+    let closeTimer = null;
+
+    /* OPEN / CLOSE ON CLICK */
+    function toggleProfileMenu(e) {
+      e.stopPropagation();
+      clearTimeout(closeTimer);
+      dropdown.classList.toggle("show");
+    }
+
+    /* KEEP OPEN ON HOVER */
+    dropdown.addEventListener("mouseenter", () => {
+      clearTimeout(closeTimer);
+    });
+
+    /* DELAYED CLOSE ON LEAVE */
+    dropdown.addEventListener("mouseleave", () => {
+      closeTimer = setTimeout(() => {
+        dropdown.classList.remove("show");
+      }, 30000); // ⏱️ 400ms → comfortable time
+    });
+
+    /* CLICK OUTSIDE CLOSE */
+    document.addEventListener("click", () => {
+      closeTimer = setTimeout(() => {
+        dropdown.classList.remove("show");
+      }, 300);
+    });
+
+    /* PREVENT CLOSE WHEN CLICKING INSIDE */
+    dropdown.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+    function toggleDeptService() {
+      const menu = document.getElementById("deptServiceMenu");
+      menu.classList.toggle("open");
+    }
+
+    function navigateTo(url) {
+      window.location.href = url;
+    }
+
+    /* Auto-open dropdown if inside dept/services page */
+    function toggleDropdown(element) {
+      // Stop the click from triggering other sidebar link events
+      if (window.event) window.event.stopPropagation();
+
+      const parent = element.parentElement;
+      parent.classList.toggle('open');
+    }
+
+    /* Close dropdown if user clicks anywhere else on the screen */
+    document.addEventListener("click", function (e) {
+      if (!e.target.closest(".sidebar-dropdown")) {
+        document.querySelectorAll(".sidebar-dropdown").forEach(d => {
+          d.classList.remove("open");
+        });
+      }
+    });
+function toggleSidebar(forceClose = false) {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+
+  if (!sidebar || !overlay) return;
+
+  if (forceClose) {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    return;
+  }
+
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('active');
+}
+
+/* Close when clicking outside sidebar */
+document.addEventListener('click', function (e) {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const menuBtn = document.querySelector('.mobile-menu-btn');
+
+  if (!sidebar.classList.contains('open')) return;
+
+  if (
+    sidebar.contains(e.target) ||
+    menuBtn.contains(e.target)
+  ) {
+    return; // click INSIDE sidebar or on button → ignore
+  }
+
+  toggleSidebar(true);
+});
+
+/* Prevent sidebar clicks from bubbling */
+document.querySelector('.sidebar').addEventListener('click', function (e) {
+  e.stopPropagation();
+});
+  
+  </script>
+
+
+
+</body>
+
+</html>

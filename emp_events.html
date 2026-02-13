@@ -1,0 +1,205 @@
+
+{% extends 'emp_base.html' %}
+{% load static %}
+
+{% block content %}
+{% if view_event %}
+<section id="viewSection" style="display:none;">
+  <div class="card-box">
+
+    <h3>Event Details</h3>
+
+    <table class="emp-table">
+      <tr><th>Event Type</th><td>{{ view_event.event_type }}</td></tr>
+      <tr><th>Venue</th><td>{{ view_event.vendor.vendor_name }}</td></tr>
+      <tr><th>Guests</th><td>{{ view_event.number_of_guests }}</td></tr>
+      <tr><th>Status</th><td>{{ view_event.status }}</td></tr>
+
+      <!-- {% if view_event.cuisine_type %}
+      <tr><th>Cuisine</th><td>{{ view_event.cuisine_type }}</td></tr>
+      {% endif %}
+
+      {% if view_event.food_type %}
+      <tr><th>Food Type</th><td>{{ view_event.food_type }}</td></tr>
+      {% endif %}
+
+      {% if view_event.guards_count %}
+      <tr>
+        <th>Security</th>
+        <td>
+          {{ view_event.guards_count }} Guards –
+          {% if view_event.armed %}Armed{% else %}Non-Armed{% endif %}
+        </td>
+      </tr>
+      {% endif %} -->
+
+      <tr>
+        <th>From</th>
+        <td>{{ view_event.from_datetime|date:"d-m-Y h:i A" }}</td>
+      </tr>
+      <tr>
+        <th>To</th>
+        <td>{{ view_event.to_datetime|date:"d-m-Y h:i A" }}</td>
+      </tr>
+    </table>
+    <br><br>
+{% if "catering" in view_event.service_types %}
+<hr>
+<h4>🍽 Catering Details</h4>
+
+<table class="emp-table">
+  <tr>
+    <th>Cuisine</th>
+    <td>{{ view_event.cuisine_type|default:"—" }}</td>
+  </tr>
+
+  <tr>
+    <th>Food Type</th>
+    <td>{{ view_event.food_type|title }}</td>
+  </tr>
+
+  <tr>
+    <th>Serving Style</th>
+    <td>{{ view_event.serving_style|title }}</td>
+  </tr>
+
+  <tr>
+    <th>Live Counter</th>
+    <td>{% if view_event.live_counter %}Yes{% else %}No{% endif %}</td>
+  </tr>
+
+  <tr>
+    <th>Staff Included</th>
+    <td>{% if view_event.staff_included %}Yes{% else %}No{% endif %}</td>
+  </tr>
+</table>
+{% endif %}
+<br><br>
+{% if "decoration" in view_event.service_types %}
+<hr>
+<h4>🎀 Decoration Details</h4>
+
+<table class="emp-table">
+  <tr>
+    <th>Theme</th>
+    <td>{{ view_event.selected_theme|title }}</td>
+  </tr>
+
+  <tr>
+    <th>Stage Decoration</th>
+    <td>{% if view_event.stage_decoration %}Yes{% else %}No{% endif %}</td>
+  </tr>
+
+  <tr>
+    <th>Lighting Decoration</th>
+    <td>{% if view_event.lighting_decoration %}Yes{% else %}No{% endif %}</td>
+  </tr>
+</table>
+{% endif %}
+{% if "security" in view_event.service_types %}
+<hr>
+<h4>🛡 Security Details</h4>
+
+<table class="emp-table">
+  <tr>
+    <th>Guard Type</th>
+    <td>{% if view_event.armed %}Armed{% else %}Non-Armed{% endif %}</td>
+  </tr>
+
+  <tr>
+    <th>Number of Guards</th>
+    <td>{{ view_event.guards_count }}</td>
+  </tr>
+</table>
+{% endif %}
+<a href="{% url 'emp_events' %}">
+    <button class="btn btn-secondary mt-3" onclick="showTable()">
+      Back
+    </button>
+</a>
+  </div>
+</section>
+{% endif %}
+
+<div class="card-box" id="tableSection">
+
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2>My Assigned Events</h2>
+    <span>Welcome, <b>{{ request.session.employee_name }}</b></span>
+  </div>
+
+  <br>
+
+  <table class="emp-table">
+    <thead>
+      <tr>
+        <th>SR No</th>
+        <th>Event Type</th>
+        <th>Vendor</th>
+        <th>Services</th>
+        <th>From Date</th>
+        <th>To Date</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for event in events %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+
+        <td>{{ event.event_type }}</td>
+
+        <td>{{ event.vendor.vendor_name }}</td>
+
+        <td>
+          {% for service in event.services.all %}
+            {{ service.service_name }}{% if not forloop.last %}, {% endif %}
+          {% empty %}
+            <span style="color:gray;">No Services</span>
+          {% endfor %}
+        </td>
+
+        <td>{{ event.from_datetime|date:"d-m-Y h:i A" }}</td>
+        <td>{{ event.to_datetime|date:"d-m-Y h:i A" }}</td>
+        <td>
+  <a href="{% url 'emp_event_view' event.event_id %}"
+     class="action-pill view"
+     title="View Event">
+    <i class="fas fa-eye"></i>
+  </a>
+</td>
+      </tr>
+
+      {% empty %}
+      <tr>
+        <td colspan="7" style="text-align:center;color:gray;">
+          No events assigned to you
+        </td>
+      </tr>
+      
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+<script>
+function showView() {
+  document.getElementById("tableSection").style.display = "none";
+  document.getElementById("viewSection").style.display = "block";
+}
+
+function showTable() {
+  document.getElementById("viewSection").style.display = "none";
+  document.getElementById("tableSection").style.display = "block";
+}
+</script>
+
+{% if view_event %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    showView();
+  });
+</script>
+{% endif %}
+{% endblock content %}

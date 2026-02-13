@@ -1,0 +1,91 @@
+{% load static %}
+<section class="section1">
+    <div class="sidebar">
+        <img src="{% static 'images/FullLogo.png' %}" alt="" class="logo" height="100px" width="100px">
+        <ul>
+            <a href="{% url 'admin' %}">
+                <li class="{% if request.path == '/admin/' %}active{% endif %}">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </li>
+            </a>
+
+            <a href="{% url 'manage_events' %}">
+                <li class="{% if 'manage_events' in request.path %}active{% endif %}">
+                    <i class="fas fa-calendar-alt"></i> Event Requests
+                </li>
+            </a>
+
+            <a href="{% url 'total_venues' %}">
+                <li class="{% if 'total_venues' in request.path %}active{% endif %}">
+                    <i class="fas fa-map-location-dot"></i> Venues
+                </li>
+            </a>
+
+            <a href="{% url 'managedepartment' %}">
+                <li class="{% if 'managedepartment' in request.path %}active{% endif %}">
+                    <i class="fas fa-users-gear"></i> Vendors
+                </li>
+            </a>
+
+            <a href="{% url 'manage_employee' %}">
+                <li class="{% if 'manage_employee' in request.path %}active{% endif %}">
+                    <i class="fas fa-user-plus"></i>Employee
+                </li>
+            </a>
+
+
+            <a href="{% url 'vendor_payments' %}">
+                <li class="{% if 'vendor_payments' in request.path %}active{% endif %}">
+                    <i class="fa fa-money-bill-wave"></i> Venue payments
+                </li>
+            </a>
+            <a href="{% url 'vendor_payments' %}">
+                <li class="{% if 'vendor_payments' in request.path %}active{% endif %}">
+                    <i class="fa fa-money-bill-wave"></i> Vendor payments
+                </li>
+            </a>
+
+            <a href="{% url 'vendor_bundles' %}">
+                <li class="{% if 'manage_bundles' in request.path %}active{% endif %}">
+                    <i class="fa fa-tags"></i> Discounts
+                </li>
+            </a>
+            <a href="{% url 'manage_cities' %}">
+                <li class="{% if 'manage_cities' in request.path %}active{% endif %}">
+                    <i class="fa fa-city"></i> Cities
+                </li>
+            </a>
+            <a href="{% url 'manage_vendor_type' %}">
+                <li class="{% if 'manage_vendor_type' in request.path %}active{% endif %}">
+                    <i class="fa fa-layer-group"></i> Vendor Types
+                </li>
+            </a>
+            <a href="{% url 'admin_leave_requests' %}">
+                <li class="{% if 'admin_leave_requests' in request.path %}active{% endif %}">
+                    <i class="fas fa-user-clock"></i> Leave Requests
+                </li>
+            </a>
+            <a href="{% url 'view_feedbacks' %}">
+                <li class="{% if 'view_feedbacks' in request.path %}active{% endif %}">
+                    <i class="fa fa-comment"></i> Feedbacks
+                </li>
+            </a>
+            <a href="{% url 'user_management' %}">
+                <li class="{% if 'user_management' in request.path %}active{% endif %}">
+                    <i class="fas fa-users"></i> User Management
+                </li>
+            </a>
+            <a href="{% url 'audit_logs' %}">
+                <li class="{% if 'audit_logs' in request.path %}active{% endif %}">
+                    <i class="fas fa-users"></i> Audit Logs
+                </li>
+            </a>
+            <div class="mobile-hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </ul>
+
+    </div>
+</section>

@@ -1,0 +1,65 @@
+{% extends "admin_base.html" %}
+{% block content %}
+
+<div class="card-box">
+  <div class="card-header">
+    <div class="table-wrapper">
+      <div class="emp_table">
+        <div class="user-table-container1">
+
+          <!-- HEADER -->
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>User Feedbacks</h2>
+          </div>
+
+          <!-- TABLE -->
+          <table class="emp-table">
+            <thead>
+              <tr>
+                <th>SR No</th>
+                <th>User</th>
+                <th>Email</th>
+                <th>Event</th>
+                <th>Rating</th>
+                <th>Comments</th>
+                <th>Suggestions</th>
+                <th>Submitted</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for f in feedbacks %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ f.user.full_name }}</td>
+                <td>{{ f.user.email }}</td>
+                <td>
+                  {{ f.event.event_type.event_type }}<br>
+                  <small>{{ f.event.from_datetime|date:"d-m-Y" }}</small>
+                </td>
+                <td>
+                  <span style="color:#f59e0b;font-weight:600;">
+                    ⭐ {{ f.rating }}/5
+                  </span>
+                </td>
+                <td>{{ f.comments }}</td>
+                <td>{{ f.suggestions }}</td>
+                <td>{{ f.submitted_at|date:"d-m-Y h:i A" }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="8" style="text-align:center;color:gray;">
+                  No feedback submitted yet
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

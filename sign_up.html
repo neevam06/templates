@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="auth-page-wrapper">
+    {# Display logout alert if redirected from logout #}
+    {% if request.GET.logged_out %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (typeof showGlobalAlert === "function") {
+                showGlobalAlert("success", "Logged out successfully 👋");
+            }
+        });
+    </script>
+    {% endif %}
+{% if request.session.user_id %}
+<div class="profile-page-bg">
+<h2 class="profile-title">Welcome, {{ user_info.full_name }}</h2>
+
+<div class="profile-wrapper">
+  <div class="profile-card">
+
+    <!-- LEFT SIDE -->
+    <div class="profile-left">
+      <h3 class="profile-name">{{ user_info.full_name }}</h3>
+      <p class="profile-role">Carnivalo User</p>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="profile-right">
+      <h3 class="section-title">Profile Information</h3>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <span>Email</span>
+          <p>{{ user_info.email }}</p>
+        </div>
+
+        <div class="info-item">
+          <span>Phone</span>
+          <p>{{ user_info.phone_number }}</p>
+        </div>
+      </div>
+
+      <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="logout-btn">Log Out</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+</div>
+
+    {% else %}
+    <div class="auth-wrapper">
+        <div class="container1">
+
+            <div class="form-box" id="signupForm" {% if show == "login" %}style="display:none;"{% endif %}>
+                <h2>Sign up</h2>
+                <form method="POST" action="{% url 'sign_up' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="text" name="FULL_NAME" placeholder="Enter Full name" required />
+
+
+                    <input type="email" name="EMAIL" placeholder="Email" required id="email" oninput="handleEmailInput(this)" />
+                    <button type="button" onclick="sendOTP()" class="btn1" id="sendOtpBtn" style="display:none;">
+                        Send OTP
+                    </button>
+                    <input type="text" id="otp" placeholder="Enter 6 digit OTP" maxlength="6" style="display:none;">
+                    <button type="button" onclick="verifyOTP()" class="btn1"
+                            id="verifyOtpBtn" style="display:none;">
+                        Verify OTP
+                    </button>
+                    <small id="otpMsg" style="display:block;margin-top:6px;"></small>
+                    <small id="otpTimer" style="display:block;margin-top:6px;color:#555;"></small>
+                    <button type="button" class="btn1" id="resendOtpBtn" style="display:none;">
+                    Resend OTP
+                    </button>
+                    
+                    
+                    <input type="tel"
+                            name="TEL_number"
+                            id="phone"
+                            placeholder="Enter Phone Number"
+                            required
+                            maxlength="10"
+                            pattern="\d{10}"
+                            oninput="
+                                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+                            " />
+
+
+
+
+                    <div class="password-wrapper">
+                        <input type="password" name="PASSWORD" id="signupPassword" placeholder="Enter Password" required>
+                        <i class="fa fa-eye" onclick="togglePassword('signupPassword', this)"></i>
+                    </div>
+                    <button type="submit" class="btn1" id="signupBtn" disabled>
+    Sign Up
+</button>
+                </form>
+                <p>Already have an account? <a href="#" onclick="toggleForms()">Log In</a></p>
+            </div>
+
+            <div class="form-box" id="loginForm" {% if show != "login" %}style="display:none;"{% endif %}>
+                <h2>Log in</h2>
+                <form method="POST" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <div class="form-content">
+                        <input type="text" name="EMAIL" placeholder="Enter Email" required />
+                        <div class="password-wrapper">
+                            <input type="password" name="PASSWORD" id="loginPassword" placeholder="Enter Password" required>
+                            <i class="fa fa-eye" onclick="togglePassword('loginPassword', this)"></i>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn1">Log In</button>
+                </form>
+                <p>Don’t have an account? <a href="#" onclick="toggleForms()">Sign Up</a></p>
+                <p>Forgot password? <a href="{% url 'forgot_password' %}">Click here</a></p>
+            </div>
+
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+        function toggleForms() {
+            const signup = document.getElementById("signupForm");
+            const login = document.getElementById("loginForm");
+            if (signup.style.display === "none") {
+                signup.style.display = "block";
+                login.style.display = "none";
+            } else {
+                signup.style.display = "none";
+                login.style.display = "block";
+            }
+        }
+
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        }
+let otpInterval;
+let timeLeft = 60;
+
+/* ================= SEND OTP ================= */
+function sendOTP() {
+    const email = document.getElementById("email").value;
+    const otpMsg = document.getElementById("otpMsg");
+
+    if (!email || !email.includes("@")) {
+        otpMsg.innerText = "Enter a valid email address";
+        otpMsg.style.color = "red";
+        return;
+    }
+
+    fetch("{% url 'send_email_otp' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: new URLSearchParams({ email })
+    })
+    .then(res => res.json())
+    .then(data => {
+        otpMsg.innerText = data.message;
+        otpMsg.style.color = data.success ? "green" : "red";
+        if (data.exists) {
+            setTimeout(() => {
+                toggleForms(); // switches to login
+            }, 1500);
+            return;
+        }
+        if (data.success) {
+            document.getElementById("otp").style.display = "block";
+            document.getElementById("verifyOtpBtn").style.display = "block";
+            startOtpTimer();
+        }
+    });
+}
+
+/* ================= VERIFY OTP ================= */
+function verifyOTP() {
+    const otp = document.getElementById("otp").value;
+    const otpMsg = document.getElementById("otpMsg");
+    const signupBtn = document.getElementById("signupBtn");
+
+    if (otp.length !== 6) {
+        otpMsg.innerText = "OTP must be 6 digits";
+        otpMsg.style.color = "red";
+        return;
+    }
+
+    fetch("{% url 'verify_email_otp' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: new URLSearchParams({ otp })
+    })
+    .then(res => res.json())
+    .then(data => {
+        otpMsg.innerText = data.message;
+        otpMsg.style.color = data.success ? "green" : "red";
+
+        if (data.success) {
+            signupBtn.disabled = false;
+            clearInterval(otpInterval);
+            otpInterval = null;
+            document.getElementById("otpTimer").innerText = "";
+            document.getElementById("resendOtpBtn").style.display = "none";
+        }
+    });
+}
+
+/* ================= INPUT HANDLER ================= */
+function handleEmailInput(input) {
+    const sendOtpBtn = document.getElementById("sendOtpBtn");
+
+    if (input.value.includes("@")) {
+        sendOtpBtn.style.display = "block";
+    } else {
+        sendOtpBtn.style.display = "none";
+    }
+}
+
+/* ================= OTP TIMER ================= */
+function startOtpTimer() {
+    const timerEl = document.getElementById("otpTimer");
+    const resendBtn = document.getElementById("resendOtpBtn");
+
+
+        if (otpInterval) {
+        clearInterval(otpInterval);
+    }
+    resendBtn.style.display = "none";
+    timeLeft = 60;
+
+    otpInterval = setInterval(() => {
+        timerEl.innerText = `OTP expires in ${timeLeft}s`;
+        timeLeft--;
+
+        if (timeLeft < 0) {
+            clearInterval(otpInterval);
+            timerEl.innerText = "OTP expired";
+            resendBtn.style.display = "block";
+        }
+    }, 1000);
+}
+
+/* ================= RESEND OTP ================= */
+document.getElementById("resendOtpBtn").addEventListener("click", sendOTP);
+    </script>
+
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+</div>
+{% endblock content %}

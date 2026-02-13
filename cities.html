@@ -1,0 +1,186 @@
+{% extends "admin_base.html" %}
+{% block content %}
+{% load static %}
+
+<section class="manage-employees-section" id="formSection" style="display:none;">
+    <div class="form-container">
+        <h4>Add City</h4>
+
+        <form method="POST">
+            {% csrf_token %}
+
+<div class="mb-3">
+    <label>City</label>
+
+    <div class="city-wrapper">
+        <div id="selectedCities" class="selected-cities"></div>
+
+        <input type="text"
+               id="cityInput"
+               class="form-control"
+               placeholder="Type city">
+
+        <div id="citySuggestions" class="city-suggestions"></div>
+
+        <!-- hidden fields -->
+        <input type="hidden" name="city_name" id="cityHidden" required>
+        <input type="hidden" name="state_name" id="stateHidden" required>
+    </div>
+</div>
+
+<div class="mb-3">
+    <label>State</label>
+    <input type="text"
+           id="stateDisplay"
+           class="form-control"
+           placeholder="Auto-filled"
+           readonly>
+</div>
+
+
+            
+
+            <div class="button-center">
+                <button type="submit" class="btn btn-primary">
+                    Save City
+                </button>
+
+                <button type="button"
+                        class="btn btn-secondary"
+                        onclick="showTable()">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<div class="card-box" id="tableSection">
+    <div class="card-header">
+        <div class="table-wrapper">
+            <div class="user-table-container1">
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <h2 style="margin:0; font-weight: 700; color: #334155;">Manage Cities</h2>
+                    </div>
+
+<button class="btn btn-secondary" onclick="showForm()">+ Add City</button>
+                </div>
+
+                <table class="emp-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%;">SR no</th>
+                            <th style="width: 45%;">City</th>
+                            <th style="width: 45%;">State</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in cities %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ c.city_name }}</td>
+                            <td>{{ c.state_name }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" style="text-align:center; color:gray; padding: 40px;">
+                                No cities added yet
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showForm() {
+    document.getElementById("tableSection").style.display = "none";
+    document.getElementById("formSection").style.display = "block";
+}
+
+function showTable() {
+    document.getElementById("formSection").style.display = "none";
+    document.getElementById("tableSection").style.display = "block";
+}
+const cityInput = document.getElementById("cityInput");
+const suggestionsBox = document.getElementById("citySuggestions");
+const selectedCitiesDiv = document.getElementById("selectedCities");
+
+const cityHidden = document.getElementById("cityHidden");
+const stateHidden = document.getElementById("stateHidden");
+const stateDisplay = document.getElementById("stateDisplay");
+
+/* ================= GEO NAMES (ADMIN ONLY) ================= */
+cityInput.addEventListener("input", function () {
+    const q = this.value.trim();
+    suggestionsBox.innerHTML = "";
+
+    if (q.length < 2) return;
+
+    const url = `https://secure.geonames.org/searchJSON?name_startsWith=${q}&country=IN&featureClass=P&orderby=population&maxRows=10&username=dhyey33`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.geonames) return;
+
+            data.geonames.forEach(c => {
+                const div = document.createElement("div");
+                div.textContent = `${c.name}, ${c.adminName1}`;
+
+                div.onclick = () => {
+                    selectCity(c.name, c.adminName1);
+                    suggestionsBox.style.display = "none";
+                };
+
+                suggestionsBox.appendChild(div);
+            });
+
+            suggestionsBox.style.display = "block";
+        });
+});
+
+/* ================= SELECT CITY ================= */
+function selectCity(city, state) {
+    selectedCitiesDiv.innerHTML = "";
+
+    const chip = document.createElement("div");
+    chip.className = "city-chip";
+    chip.innerHTML = `${city}, ${state} <span>&times;</span>`;
+
+    chip.querySelector("span").onclick = () => {
+        selectedCitiesDiv.innerHTML = "";
+        cityHidden.value = "";
+        stateHidden.value = "";
+        stateDisplay.value = "";
+    };
+
+    selectedCitiesDiv.appendChild(chip);
+
+    cityHidden.value = city;
+    stateHidden.value = state;
+    stateDisplay.value = state;
+
+    cityInput.value = "";
+}
+
+/* ================= CLICK OUTSIDE ================= */
+document.addEventListener("click", e => {
+    if (!cityInput.contains(e.target) &&
+        !suggestionsBox.contains(e.target)) {
+        suggestionsBox.style.display = "none";
+    }
+});
+
+
+/* ========= GEO NAMES API ========= */
+
+</script>
+
+{% endblock %}

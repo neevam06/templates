@@ -1,0 +1,78 @@
+{% extends "admin_base.html" %}
+{% block content %}
+<html>
+  <head>
+    <style>
+      .emp-table th:nth-child(1) { width: 5%; }  /* SR NO */
+.emp-table th:nth-child(2) { width: 30%; } /* Name */
+.emp-table th:nth-child(3) { width: 15%; } /* Address */
+
+.emp-table th:nth-child(8) { width: 8%; }  /* Status */
+.emp-table th:nth-child(9) { width: 8%; }  /* Avail Status */
+.emp-table th:nth-child(10) { width: 22%; } /* Action */
+.amount-cell {
+  white-space: nowrap;
+  font-weight: 600;
+}
+    </style>
+  </head>
+</html>
+<div class="card-box">
+  <div class="card-header">
+    <div class="table-wrapper">
+      <div class="emp_table">
+        <div class="user-table-container1">
+
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>Venue Payments</h2>
+          </div>
+
+          <table class="emp-table">
+            <thead>
+              <tr>
+                <th>SR No</th>
+                <th>User Email</th>
+                <th>Vendor</th>
+
+                <th>Event Duration</th>
+                <th>Amount (₹)</th>
+                <th>Paid On</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for p in payments %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ p.event.user.email }}</td>
+                <td>{{ p.vendor.vendor_name }}</td>
+
+                <!-- ✅ SERVICES PROVIDED -->
+
+<td>
+  {{ p.event.from_date|date:"d-m-Y" }} –
+  {{ p.event.to_date|date:"d-m-Y" }}
+</td>
+
+<td class="amount-cell">₹ {{ p.total_amount }}</td>
+
+<td>{{ p.event.created_at|date:"d-m-Y h:i A" }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7" style="text-align:center;color:gray;">
+                  No vendor payments found
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+
+          </table>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="payment-wrapper">
+  <div class="payment-card">
+<div id="processingOverlay" class="processing-overlay hidden">
+  <div class="processing-box">
+    <div class="spinner"></div>
+    <h3>Processing Payment</h3>
+    <p>Please do not refresh or close this page</p>
+  </div>
+</div>
+    <h2>Confirm Payment</h2>
+    <p class="subtitle">Please review your charges before proceeding</p>
+
+    <div class="payment-row">
+      <span>Event Type</span>
+      <span>{{ event.event_type }}</span>
+    </div>
+
+    <div class="payment-row">
+      <span>Venue</span>
+      <span>{{ event.vendor.vendor_name }}</span>
+    </div>
+
+    <hr>
+
+    <div class="payment-row">
+      <span>Service Charges</span>
+      <span>₹{{ base_amount }}</span>
+    </div>
+
+    <div class="payment-row">
+      <span>Company Commission</span>
+      <span>₹{{ commission }}</span>
+    </div>
+
+{% if discount > 0 %}
+<div class="payment-row discount">
+  <span>Bundle Discount</span>
+  <span>- ₹{{ discount }}</span>
+</div>
+{% endif %}
+
+    <hr>
+
+    <div class="payment-row total">
+      <span>Total Payable</span>
+      <span>₹{{ final_amount }}</span>
+    </div>
+
+    <button class="pay-btn" id="payEventBtn">
+      Confirm & Pay ₹{{ final_amount }}
+    </button>
+
+  </div>
+</div>
+
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+// document.getElementById("payEventBtn").onclick = function () {
+
+//     const amount = {{ event.total_amount|floatformat:0 }};
+
+//     fetch(`/create-order/?amount=${amount}`)
+//         .then(res => res.json())
+//         .then(data => {
+
+//             var options = {
+//                 key: data.key,
+//                 amount: data.amount,
+//                 currency: "INR",
+//                 name: "Carnivalo",
+//                 description: "Event Services Payment",
+//                 order_id: data.order_id,
+
+//                 handler: function (response) {
+
+//                     fetch("/verify-payment/", {
+//                         method: "POST",
+//                         headers: {
+//                             "Content-Type": "application/json",
+//                             "X-CSRFToken": "{{ csrf_token }}"
+//                         },
+//                         body: JSON.stringify({
+//                             razorpay_payment_id: response.razorpay_payment_id,
+//                             razorpay_order_id: response.razorpay_order_id,
+//                             razorpay_signature: response.razorpay_signature,
+//                             event_id: {{ event.event_id }}
+//                         })
+//                     })
+//                     .then(res => res.json())
+//                     .then(data => {
+//                         if (data.status === "success") {
+//                             alert("Payment successful!");
+//                             window.location.href = "/events/";
+//                         } else {
+//                             alert("Payment verification failed");
+//                         }
+//                     });
+//                 },
+
+//                 modal: {
+//                     ondismiss: function () {
+//                         console.log("Payment popup closed");
+//                     }
+//                 },
+
+//                 prefill: {
+//                     name: "{{ request.user.get_full_name }}",
+//                     email: "{{ request.user.email }}"
+//                 },
+
+//                 theme: {
+//                     color: "#0d6efd"
+//                 }
+//             };
+
+//             var rzp = new Razorpay(options);
+//             rzp.open();
+//         });
+// };
+document.getElementById("payEventBtn").onclick = function () {
+
+    const overlay = document.getElementById("processingOverlay");
+
+    // Disable button to prevent double click
+    this.disabled = true;
+    this.innerText = "Processing...";
+
+    // Show fake processing screen
+    overlay.classList.remove("hidden");
+
+    // ⏳ Fake delay (feels real)
+    setTimeout(() => {
+        // Submit form (POST)
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "";
+
+        const csrf = document.createElement("input");
+        csrf.type = "hidden";
+        csrf.name = "csrfmiddlewaretoken";
+        csrf.value = "{{ csrf_token }}";
+
+        form.appendChild(csrf);
+        document.body.appendChild(form);
+        form.submit();
+    }, 2500); // 2.5 seconds feels perfect
+};
+</script>
+
+{% endblock %}

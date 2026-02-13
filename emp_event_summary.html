@@ -1,0 +1,54 @@
+{% extends 'emp_base.html' %}
+{% block content %}
+
+<div class="invoice-card">
+  <h2>Event Service Summary</h2>
+
+  <div class="invoice-meta">
+    <div><b>Event:</b> {{ event.event_type }}</div>
+    <div><b>Venue:</b> {{ event.vendor.vendor_name }}</div>
+    <div><b>Guests:</b> {{ guests }}</div>
+    <div><b>Duration:</b> {{ duration }} hrs</div>
+  </div>
+
+  <table class="invoice-table">
+    <thead>
+      <tr>
+        <th>SR NO</th>
+        <th>Service</th>
+        <th>Selected Options</th>
+        <th class="right">Amount (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in selections %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td>{{ s.service_name }}</td>
+        <td>
+          {% if s.details %}
+            <ul>
+              {% for d in s.details %}
+                <li>{{ d }}</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <span class="text-muted">No options selected</span>
+          {% endif %}
+        </td>
+        <td class="right">₹{{ s.total_amount }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="invoice-total">
+    Grand Total: ₹{{ grand_total }}
+    <br>
+    <small class="text-muted">
+      * Pricing will be calculated after vendor assignment
+    </small>
+  </div>
+</div>
+
+{% endblock content %}

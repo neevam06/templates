@@ -1,0 +1,205 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="card-box" id="eventTable">
+  <div class="card-header">
+    <div class="table-wrapper">
+      <div class="emp_table">
+        <div class="user-table-container1">
+
+          <!-- HEADER -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+  <h2>Manage Events</h2>
+
+  <a href="{% url 'events' %}" 
+     class="btn btn-primary"
+     style="
+        background:#2563eb;
+        color:white;
+        padding:8px 16px;
+        border-radius:6px;
+        text-decoration:none;
+        font-size:14px;
+     ">
+     + Add Event
+  </a>
+</div>
+
+          <!-- TABLE -->
+          <table class="emp-table">
+            <thead>
+              <tr>
+                <th>SR No</th>
+                <th>Event Type</th>
+                <th>Vendor</th>
+                <th>Services</th>
+                <th>From Date</th>
+                <th>To Date</th>
+                <th>Employee</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for event in events %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+
+                <td>{{ event.event_type.event_type }}</td>
+
+                <td>{{ event.vendor.vendor_name }}</td>
+
+                <!-- SERVICES -->
+<td>
+  {% if event.services_selected %}
+    <span style="
+      background:#dcfce7;
+      color:#166534;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:600;
+      display:inline-block;
+    ">
+      Services Selected
+    </span>
+  {% else %}
+    <span style="
+      background:#f1f5f9;
+      color:#64748b;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:12px;
+    ">
+      Not Selected
+    </span>
+  {% endif %}
+</td>
+
+                <td>{{ event.from_datetime|date:"d M Y h:i A" }}</td>
+                <td>{{ event.to_datetime|date:"d M Y h:i A" }}</td>
+
+                <!-- ASSIGNED EMPLOYEE -->
+                <td>
+                  {% if event.assigned_employee %}
+                  <span style="color:green; font-weight:600;">
+                    {{ event.assigned_employee.full_name }}
+                  </span>
+                  {% else %}
+                  <span style="color:gray;">Not Assigned</span>
+                  {% endif %}
+                </td>
+
+                <!-- ACTION -->
+                <td class="inline-actions">
+
+                  {% if event.is_expired %}
+                  <span class="action-badge expired">Expired</span>
+
+                  {% elif event.status == "SERVICE_DONE" %}
+                  <span class="action-badge completed">Completed</span>
+
+                  {% else %}
+                  {% if not event.assigned_employee %}
+                  <button class="action-btn-outline assign" onclick="showAssignForm(
+          '{{ event.event_id }}',
+          '{{ event.event_type.event_type }} - {{ event.vendor.vendor_name }}'
+        )">
+                    Assign
+                  </button>
+                  {% else %}
+                  <span class="action-badge assigned">Assigned</span>
+                  {% endif %}
+                  {% endif %}
+
+                  {% if event.payment_status == "PAID" %}
+                  <a href="{% url 'admin_download_invoice' event.event_id %}" class="action-btn-outline invoice">
+                    Invoice
+                  </a>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="8" style="text-align:center;color:gray;">
+                  No events found
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+
+          </table>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="manage-employees-section" id="assignForm" style="display:none;">
+  <div class="form-container">
+    <h4>Assign Employee</h4>
+
+    <form method="POST" action="{% url 'manage_events' %}" class="ajax-form" data-redirect="">
+      {% csrf_token %}
+      <input type="hidden" name="assign_employee" value="1">
+      <input type="hidden" name="event_id" id="assign_event_id">
+
+      <div class="mb-3">
+        <label>Event</label>
+        <input type="text" id="assign_event_info" class="form-control" readonly>
+      </div>
+
+      <div class="mb-3">
+        <label>Select Employee</label>
+        <select name="employee_id" class="form-control" required>
+          <option value="">-- Select Employee --</option>
+          {% for emp in employees %}
+          <option value="{{ emp.employee_id }}">{{ emp.full_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="button-center">
+        <button type="submit" class="btn btn-primary">Assign</button>
+        <button type="button" onclick="showEventTable()" class="btn btn-secondary">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+<script>
+  function showAssignForm(eventId, eventInfo) {
+    console.log("Showing form for Event ID:", eventId); // Debugging line
+
+    const table = document.getElementById("eventTable");
+    const form = document.getElementById("assignForm");
+
+    if (table && form) {
+      table.style.display = "none";
+      form.style.display = "block";
+
+      document.getElementById("assign_event_id").value = eventId;
+      document.getElementById("assign_event_info").value = eventInfo;
+    } else {
+      console.error("Could not find table or form IDs");
+    }
+  }
+
+  function showEventTable() {
+    document.getElementById("assignForm").style.display = "none";
+    document.getElementById("eventTable").style.display = "block";
+  }
+  function toggleMenu(btn) {
+    const menu = btn.nextElementSibling;
+    document.querySelectorAll(".action-menu").forEach(m => m.classList.remove("show"));
+    menu.classList.toggle("show");
+  }
+
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest(".action-wrapper")) {
+      document.querySelectorAll(".action-menu").forEach(m => m.classList.remove("show"));
+    }
+  });
+</script>
+{% endblock %}

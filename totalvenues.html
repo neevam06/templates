@@ -1,0 +1,508 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- ================= ADD VENUE FORM ================= -->
+<section class="manage-employees-section" id="formSection" style="display:none;">
+    <div class="form-container">
+        <h4>Add New Venue</h4>
+
+        <form method="post" enctype="multipart/form-data" action="{{ form_action }}" class="ajax-form">
+            {% csrf_token %}
+
+            <!-- Vendor Name -->
+            <div class="mb-3">
+                <label>Vendor Name</label>
+                <input type="text" class="form-control" name="vendor_name"
+                    value="{{ view_vendor.vendor_name|default_if_none:'' }}" {% if view_mode %}readonly{% endif %}
+                    required>
+            </div>
+
+            <!-- Vendor Address -->
+            <div class="mb-3">
+                <label>Vendor Address</label>
+                <textarea class="form-control" name="vendor_address" rows="2" {% if view_mode %}readonly{% endif %}
+                    required>{{ view_vendor.vendor_address|default_if_none:'' }}</textarea>
+            </div>
+
+            <!-- Guest Capacity -->
+            <div class="mb-3">
+                <label>Guest Capacity</label>
+                <input type="text" class="form-control" id="guestCapacity" name="vendor_guest_capacity"
+                    value="{{ view_vendor.vendor_guest_capacity|default_if_none:'' }}" {% if view_mode %}readonly{% endif %} required placeholder="Max 1,00,000">
+                <small class="text-danger d-none" id="capacityError">
+                    Guest capacity cannot exceed 1,00,000
+                </small>
+            </div>
+            {% if view_mode %}
+            <div class="mb-3">
+                <label>Images</label><br>
+
+                {% if view_vendor.vendor_image1 %}
+                <img src="{{ view_vendor.vendor_image1.url }}" width="120" class="me-2 mb-2">
+                {% endif %}
+
+                {% if view_vendor.vendor_image2 %}
+                <img src="{{ view_vendor.vendor_image2.url }}" width="120" class="me-2 mb-2">
+                {% endif %}
+
+                {% if view_vendor.vendor_image3 %}
+                <img src="{{ view_vendor.vendor_image3.url }}" width="120" class="me-2 mb-2">
+                {% endif %}
+            </div>
+            <hr>
+<h4 style="margin-top:20px;">🔍 Venue Verification Documents</h4>
+
+<div class="row mt-3">
+
+    {% if view_vendor.aadhaar_document %}
+    <div class="col-md-6 mb-3">
+        <label>Aadhaar</label><br>
+        <a href="{{ view_vendor.aadhaar_document.url }}" target="_blank">
+            View Aadhaar Document
+        </a>
+    </div>
+    {% endif %}
+
+    {% if view_vendor.property_tax_receipt %}
+    <div class="col-md-6 mb-3">
+        <label>Property Tax Receipt</label><br>
+        <a href="{{ view_vendor.property_tax_receipt.url }}" target="_blank">
+            View Property Tax Receipt
+        </a>
+    </div>
+    {% endif %}
+
+    {% if view_vendor.lease_agreement %}
+    <div class="col-md-6 mb-3">
+        <label>Rental / Lease Agreement</label><br>
+        <a href="{{ view_vendor.lease_agreement.url }}" target="_blank">
+            View Lease Agreement
+        </a>
+    </div>
+    {% endif %}
+
+    {% if view_vendor.municipal_trade_license %}
+    <div class="col-md-6 mb-3">
+        <label>Municipal Trade License</label><br>
+        <a href="{{ view_vendor.municipal_trade_license.url }}" target="_blank">
+            View Trade License
+        </a>
+    </div>
+    {% endif %}
+
+    {% if view_vendor.gst_certificate %}
+    <div class="col-md-6 mb-3">
+        <label>GST Certificate</label><br>
+        <a href="{{ view_vendor.gst_certificate.url }}" target="_blank">
+            View GST Certificate
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+            {% endif %}
+
+            <!-- Base Price -->
+            <div class="mb-3">
+                <label>Per Day Price (₹)</label>
+                <input type="text" class="form-control" id="basePrice" name="base_price"
+                    value="{{ view_vendor.base_price|default_if_none:'' }}" {% if view_mode %}readonly{% endif %}
+                    required>
+            </div>
+
+            <!-- Availability From -->
+            <div class="mb-3">
+                <label>Availability From</label>
+                <input type="datetime-local" class="form-control" id="from_date" name="availability_from"
+                    value="{{ view_vendor.availability_from|date:'Y-m-d\\TH:i' }}" {% if view_mode %}readonly{% endif %}
+                    required>
+            </div>
+
+            <!-- Availability To -->
+            <div class="mb-3">
+                <label>Availability To</label>
+                <input type="datetime-local" class="form-control" id="to_date" name="availability_to"
+                    value="{{ view_vendor.availability_to|date:'Y-m-d\\TH:i' }}" {% if view_mode %}readonly{% endif %}
+                    required>
+            </div>
+
+
+
+            <!-- Status -->
+            <div class="mb-3">
+                <label>Status</label>
+                <select class="form-select" name="status" {% if view_mode %}disabled{% endif %} required>
+                    <option value="AVAILABLE" {% if view_vendor.status == "AVAILABLE" %}selected{% endif %}>
+                        Available
+                    </option>
+                    <option value="UNAVAILABLE" {% if view_vendor.status == "UNAVAILABLE" %}selected{% endif %}>
+                        Unavailable
+                    </option>
+                </select>
+            </div>
+
+            <!-- Images (Hidden in View Mode) -->
+            {% if not view_mode %}
+            <div class="mb-3">
+                <label>Vendor Images</label>
+                <input type="file" class="form-control" name="vendor_image1">
+                <input type="file" class="form-control mt-2" name="vendor_image2">
+                <input type="file" class="form-control mt-2" name="vendor_image3">
+            </div>
+            {% endif %}
+
+            <!-- Buttons -->
+            <div class="button-center">
+                {% if edit_mode %}
+                <button type="submit" class="btn btn-warning">
+                    <i class="fa fa-save"></i> Update Venue
+                </button>
+                {% elif not view_mode %}
+                <button type="submit" class="btn btn-primary">
+                    Add Venue
+                </button>
+                {% endif %}
+
+
+                <a href="{% url 'total_venues' %}">
+                    <button type="button" class="btn btn-secondary" onclick="showTable()">
+                        Cancel
+                    </button>
+                </a>
+            </div>
+
+        </form>
+    </div>
+</section>
+
+<!-- ================= VENUE TABLE ================= -->
+<div class="card-box" id="tableSection">
+    <div class="card-header">
+        
+            <div class="emp_table">
+                <!-- <div class="user-table-container1"> -->
+
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h2>Manage Venues</h2>
+
+                        <button class="btn btn-success" onclick="showForm()">
+                            <i class="fas fa-plus"></i> Add Venue
+                        </button>
+                    </div>
+<div class="table-wrapper">
+                    <table class="emp-table">
+                        <thead>
+                            <tr>
+                                <th>SR NO</th>
+                                <th>Name</th>
+                                <th>Address</th>
+                                <th>Capacity</th>
+                                <th>Price</th>
+                                <th>Availability</th>
+                                <th>Requested By</th>
+                                <th>Status</th>
+                                <th>Availability Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for vendor in vendors %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ vendor.vendor_name }}</td>
+                                <td class="td-compact address-cell">{{ vendor.vendor_address }}</td>
+                                <td>{{ vendor.vendor_guest_capacity }}</td>
+
+                                <td>₹{{ vendor.base_price }}</td>
+                                <td class="td-compact availability-cell">{{ vendor.availability_from }} <br>→ {{ vendor.availability_to }}</td>
+                                <td>
+                                    {% if vendor.created_by %}
+                                    {{ vendor.created_by.full_name }}<br>
+                                    <small>{{ vendor.created_by.email }}</small>
+                                    {% else %}
+                                    <span class="text-muted">Admin</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if vendor.status == "PENDING" %}
+                                    <span class="badge bg-warning">Pending</span>
+                                    {% elif vendor.status == "REJECTED" %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Approved</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if vendor.is_available_now %}
+                                        <span class="badge bg-success">Available</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Unavailable</span>
+                                    {% endif %}
+                                </td>
+<td class="inline-actions">
+
+    <!-- VIEW -->
+    <a href="{% url 'view_venue' vendor.vendor_id %}"
+       class="action-pill view"
+       title="View Venue">
+        <i class="fas fa-eye"></i>
+    </a>
+
+    {% if vendor.status == "PENDING" %}
+    <button type="button"
+            class="action-pill approve"
+            title="Approve Venue"
+            onclick="approveVenue({{ vendor.vendor_id }})">
+        <i class="fas fa-check"></i>
+    </button>
+
+    <button type="button"
+            class="action-pill reject"
+            title="Reject Venue"
+            onclick="rejectVenue({{ vendor.vendor_id }})">
+        <i class="fas fa-times"></i>
+    </button>
+    {% endif %}
+
+</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" style="text-align:center;">
+                                    No venues added yet
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= JAVASCRIPT ================= -->
+<script>
+
+function approveVenue(id) {
+    if (!confirm("Approve this venue?")) return;
+
+    fetch(`/venues/approve/${id}/`, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCSRFToken(),
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        showGlobalAlert(data.status, data.message);
+        if (data.status === "success") {
+            setTimeout(() => location.reload(), 800);
+        }
+    })
+    .catch(() => showGlobalAlert("error", "Something went wrong"));
+}
+
+function rejectVenue(id) {
+    if (!confirm("Reject this venue?")) return;
+
+    fetch(`/venues/reject/${id}/`, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCSRFToken(),
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        showGlobalAlert(data.status, data.message);
+        setTimeout(() => location.reload(), 800);
+    })
+    .catch(() => showGlobalAlert("error", "Something went wrong"));
+}
+    function deleteVendor(id) {
+        if (!confirm("Are you sure you want to delete this venue?")) return;
+
+        fetch(`/delete_vendor/${id}/`, {
+            method: "POST",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken": getCSRFToken()
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                // 🔥 Use showGlobalAlert instead of alert()
+                showGlobalAlert(data.status, data.message);
+
+                if (data.status === "success") {
+                    // Delay the reload slightly so the user can actually see the green alert
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+            })
+            .catch(err => {
+                console.error("Delete failed:", err);
+                showGlobalAlert("error", "Delete failed. Please try again.");
+            });
+    }
+    function showForm() {
+        document.getElementById("tableSection").style.display = "none";
+        document.getElementById("formSection").style.display = "block";
+    }
+
+    function showTable() {
+        document.getElementById("formSection").style.display = "none";
+        document.getElementById("tableSection").style.display = "block";
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        const container = document.getElementById("image-upload-container");
+        if (!container) return; // 🔥 FIX
+
+        let maxImages = 3;
+
+        function addNewInput() {
+            const inputs = container.querySelectorAll(".vendorImagesInput");
+            const lastInput = inputs[inputs.length - 1];
+
+            if (lastInput && lastInput.files.length > 0 && inputs.length < maxImages) {
+                const newInput = document.createElement("input");
+                newInput.type = "file";
+                newInput.name = "vendorImages";
+                newInput.className = "form-control vendorImagesInput mt-2";
+                newInput.accept = "image/*";
+
+                newInput.addEventListener("change", addNewInput);
+                container.appendChild(newInput);
+            }
+        }
+
+        const firstInput = container.querySelector(".vendorImagesInput");
+        if (firstInput) {
+            firstInput.addEventListener("change", addNewInput);
+        }
+    });
+    function toggleMenu(btn) {
+        document.querySelectorAll(".action-menu").forEach(menu => {
+            if (menu !== btn.nextElementSibling) {
+                menu.classList.remove("show");
+            }
+        });
+        btn.nextElementSibling.classList.toggle("show");
+    }
+
+    document.addEventListener("click", function (e) {
+        if (!e.target.classList.contains("action-btn")) {
+            document.querySelectorAll(".action-menu").forEach(menu => {
+                menu.classList.remove("show");
+            });
+        }
+    });
+    function formatIndianNumber(num) {
+        if (!num) return "";
+
+        let lastThree = num.slice(-3);
+        let otherNumbers = num.slice(0, -3);
+
+        if (otherNumbers !== "") {
+            lastThree = "," + lastThree;
+        }
+
+        return otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree;
+    }
+    const capacityInput = document.getElementById("guestCapacity");
+    const capacityError = document.getElementById("capacityError");
+
+    capacityInput.addEventListener("input", function () {
+        let raw = this.value.replace(/[^0-9]/g, '');
+
+        if (parseInt(raw || 0) > 100000) {
+            capacityError.classList.remove("d-none");
+            raw = "100000";
+        } else {
+            capacityError.classList.add("d-none");
+        }
+
+        this.value = formatIndianNumber(raw);
+    });
+    const priceInput = document.getElementById("basePrice");
+
+    priceInput.addEventListener("input", function () {
+        let raw = this.value.replace(/[^0-9]/g, '');
+
+        if (parseInt(raw || 0) > 500000) {
+            raw = "500000";
+        }
+
+        this.value = formatIndianNumber(raw);
+    });
+    document.querySelector("form").addEventListener("submit", function () {
+        capacityInput.value = capacityInput.value.replace(/,/g, '');
+        priceInput.value = priceInput.value.replace(/,/g, '');
+    });
+    document.addEventListener("DOMContentLoaded", function () {
+        const now = new Date();
+
+        // Convert to local datetime format
+        const localNow = new Date(
+            now.getTime() - now.getTimezoneOffset() * 60000
+        ).toISOString().slice(0, 16);
+
+        const fromInput = document.getElementById("from_date");
+        const toInput = document.getElementById("to_date");
+
+        // Block past date & time
+        fromInput.min = localNow;
+        toInput.min = localNow;
+
+        // Ensure TO >= FROM
+        fromInput.addEventListener("change", function () {
+            toInput.min = this.value;
+        });
+    });
+    function getCSRFToken() {
+        return document.cookie
+            .split("; ")
+            .find(row => row.startsWith("csrftoken="))
+            ?.split("=")[1];
+    }
+    function confirmVendorAction(vendorId, action) {
+
+        const actionText = action === "approve" ? "Approve" : "Reject";
+        const confirmText = action === "approve"
+            ? "This vendor will become live and visible to users."
+            : "This vendor request will be permanently rejected.";
+
+        if (!confirm(`Are you sure you want to ${actionText} this vendor?\n\n${confirmText}`)) {
+            return;
+        }
+
+        fetch(`/vendor/${action}/${vendorId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCSRFToken(),
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                showGlobalAlert(data.status, data.message);
+                if (data.status === "success") {
+                    setTimeout(() => window.location.reload(), 800);
+                }
+            });
+    }
+</script>
+{% if view_vendor %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        showForm();
+    });
+</script>
+{% endif %} {% endblock %}

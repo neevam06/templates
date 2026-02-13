@@ -1,0 +1,585 @@
+{% extends "admin_base.html" %}
+{% load static %}
+
+{% block content %}
+
+
+<!-- ================= ADD VENDOR TYPE FORM ================= -->
+<div class="card-box" id="formSection" style="display:none;">
+
+  <div class="card-header">
+    <h2>
+  {% if view_mode %}
+    View Vendor Type
+  {% elif edit_mode %}
+    Edit Vendor Type
+  {% else %}
+    Add Vendor Type
+  {% endif %}
+</h2>
+  </div>
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <!-- ================= GRID ================= -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:25px;">
+
+      <!-- ================= LEFT ================= -->
+      <div>
+
+        <label>Vendor Type Name</label>
+        <input type="text" name="vendor_type" value="{{ view_vendor_type.vendor_type|default_if_none:'' }}"
+          placeholder="e.g. Decoration" {% if view_mode %}readonly{% endif %} required>
+        <label style="margin-top:15px;">Status</label>
+<select name="is_active" {% if view_mode %}disabled{% endif %}>
+  <option value="1"
+    {% if view_vendor_type and view_vendor_type.is_active %}
+      selected
+    {% endif %}
+  >
+    Active
+  </option>
+
+  <option value="0"
+    {% if view_vendor_type and not view_vendor_type.is_active %}
+      selected
+    {% endif %}
+  >
+    Inactive
+  </option>
+</select>
+        <hr style="margin:20px 0;">
+
+        <h4>Fields for this Vendor Type</h4>
+        <br>
+
+        <div id="fieldList">
+          {% if view_vendor_type %}
+{% for field in view_vendor_type.fields.all %}
+<div class="info-item"
+     data-index="{{ forloop.counter0 }}"
+     onclick="selectField(this)">
+
+  <b>{{ field.label }}</b>
+  <span style="font-size:12px;color:#6b7280;">
+    {{ field.get_field_type_display }}
+    {% if field.required %}(Required){% endif %}
+  </span>
+
+  <input type="hidden" name="fields[{{ forloop.counter0 }}][id]" value="{{ field.id }}">
+  <input type="hidden" name="fields[{{ forloop.counter0 }}][label]" value="{{ field.label }}">
+  <input type="hidden" name="fields[{{ forloop.counter0 }}][type]" value="{{ field.field_type }}">
+  <input type="hidden" name="fields[{{ forloop.counter0 }}][required]" value="{{ field.required|yesno:'yes,no' }}">
+  <input type="hidden" name="fields[{{ forloop.counter0 }}][size]" value="{{ field.size }}">
+  <input type="hidden" name="fields[{{ forloop.counter0 }}][help]" value="{{ field.help_text }}">
+  <input type="hidden" name="fields[{{ forloop.counter0 }}][file_types]" value="{{ field.file_types }}">
+  <input type="hidden" name="fields[{{ forloop.counter0 }}][delete]" value="0">
+<input type="hidden"
+         name="fields[{{ forloop.counter0 }}][ask_user]"
+         value="{{ field.ask_user|yesno:'1,0' }}">
+  <!-- 🔥 THIS IS THE MISSING PIECE -->
+  <input type="hidden"
+         class="pricing-columns-json"
+         value='[
+         {% for col in field.pricing_columns.all %}
+           {
+             "id": {{ col.id }},
+             "key": "{{ col.key }}",
+             "label": "{{ col.label }}",
+             "type": "{{ col.column_type }}"
+           }{% if not forloop.last %},{% endif %}
+         {% endfor %}
+         ]'>
+</div>
+{% endfor %}
+          {% endif %}
+        </div>
+
+        {% if not view_mode %}
+        <button type="button" class="btn btn-secondary" onclick="addField()" style="margin-top:10px;">
+          + Add Field
+        </button>
+        {% endif %}
+
+      </div>
+
+      <!-- ================= RIGHT (FIELD EDITOR) ================= -->
+<div id="fieldEditor"
+     style="background:#f8fafc;
+            padding:20px;
+            border-radius:12px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.08);
+            display:none;
+            {% if view_mode %}opacity:0.85;{% endif %}">
+
+
+        <h4 style="margin-top:0;">Field Settings</h4>
+
+        <label>Field Label</label>
+        <input type="text" id="fe_label">
+
+        <label>Field Type</label>
+<select id="fe_type">
+  <option value="text">Text</option>
+  <option value="number">Number</option>
+  <option value="textarea">Textarea</option>
+  <option value="checkbox">Checkbox</option>
+  <option value="multi">Multi Value</option>
+  <option value="file">File (PDF / DOC)</option>
+  <option value="image">Image</option>
+
+  <!-- 🔥 IMPORTANT -->
+  <option value="pricing_group">Theme / Pricing Group</option>
+</select>
+
+        <label>Field Size</label>
+        <input type="number" id="fe_size" placeholder="e.g. 255, 5, 10" min="1">
+
+        <small style="color:#6b7280;">
+          Text: max length · Textarea: rows · Multi: max items
+        </small>
+
+        <label style="margin-top:10px;">Required?</label>
+        <select id="fe_required">
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+        <label style="margin-top:10px;">Help Text</label>
+<input type="text" id="fe_help" placeholder="Shown below the field">
+
+<label style="margin-top:10px;">Allowed File Types</label>
+<input type="text" id="fe_file_types" placeholder="pdf,jpg,png">
+<small style="color:#6b7280;">
+  Only for File / Image fields
+</small>
+<label>Ask User?</label>
+<select id="fe_ask_user" class="form-control">
+    <option value="0">No</option>
+    <option value="1">Yes</option>
+</select>
+
+<small class="text-muted">
+    If Yes, this field will be shown to users while creating an event
+</small>
+<div id="pricingGroupEditor" style="display:none;margin-top:20px;">
+  <hr>
+  <h4>Option Attributes</h4>
+
+  <div id="pricingColumns"></div>
+
+<button type="button"
+        class="btn btn-secondary"
+        onclick="addPricingColumn()">
+  + Add Attribute
+</button>
+
+<small style="color:#6b7280;display:block;margin-top:8px;">
+  These attributes will be entered for each option (e.g. Theme, Package, Variant)
+</small>
+</div><br>
+        <button type="button" class="btn btn-danger" onclick="removeActiveField()" style="margin-top:15px;">
+          Remove Field
+        </button>
+      </div>
+
+    </div>
+
+    <br>
+    <hr>
+
+    <div class="button-center">
+
+      {% if view_mode %}
+      <a href="{% url 'manage_vendor_type' %}" class="btn btn-secondary">
+        Back
+      </a>
+
+      {% elif edit_mode %}
+      <button type="submit" class="btn btn-primary">
+        Update Vendor Type
+      </button>
+      <a href="{% url 'manage_vendor_type' %}" class="btn btn-secondary">
+        Cancel
+      </a>
+
+      {% else %}
+      <button type="submit" class="btn btn-primary">
+        Save Vendor Type
+      </button>
+      <a href="{% url 'manage_vendor_type' %}" class="btn btn-secondary">
+        Cancel
+      </a>
+
+      {% endif %}
+
+    </div>
+
+  </form>
+</div>
+
+<!-- ================= TABLE ================= -->
+<div class="card-box" id="tableSection">
+
+  <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+    <h2>Manage Vendor Types</h2>
+
+    <button class="btn btn-secondary" onclick="showForm()">
+      + Add Vendor Type
+    </button>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="emp-table">
+      <thead>
+        <tr>
+          <th>SR NO</th>
+          <th>Vendor Type</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for vt in vendortype %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ vt.vendor_type }}</td>
+          <td>
+            {% if vt.is_active %}
+            <span style="color:green;font-weight:600;">Active</span>
+            {% else %}
+            <span style="color:red;font-weight:600;">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="inline-actions">
+            <a href="{% url 'view_vendor_type' vt.id %}" class="action-pill view" title="View Vendor Type">
+              <i class="fas fa-eye"></i>
+            </a>
+            <a href="{% url 'update_vendor_type' vt.id %}" class="action-pill edit" title="Edit">
+              <i class="fas fa-pen"></i>
+            </a>
+            <form method="POST"
+        action="{% url 'manage_vendor_type_id' vt.id %}"
+        style="display:inline;"
+        onsubmit="return confirm('Delete this vendor type and all its fields?');">
+    {% csrf_token %}
+    <input type="hidden" name="delete_vendor_type" value="1">
+    <button type="submit"
+            class="action-pill delete"
+            title="Delete Vendor Type"
+            >
+      <i class="fas fa-trash"></i>
+    </button>
+  </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" style="text-align:center;color:#888;">
+            No vendor types added
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<!-- ================= JS ================= -->
+<script>
+  let pricingColIndex = 0;
+
+function togglePricingGroup() {
+  const type = document.getElementById("fe_type").value;
+  document.getElementById("pricingGroupEditor").style.display =
+    type === "pricing_group" ? "block" : "none";
+}
+
+document.getElementById("fe_type").addEventListener("change", togglePricingGroup);
+
+function addPricingColumn() {
+  if (!activeField) return;
+
+  const container = document.getElementById("pricingColumns");
+
+  const idx = pricingColIndex++;
+
+  const div = document.createElement("div");
+  div.className = "pricing-col-row";
+  div.style.display = "grid";
+  div.style.gridTemplateColumns = "2fr 2fr 110px 44px";
+  div.style.gap = "8px";
+  div.style.marginBottom = "8px";
+
+  div.innerHTML = `
+<div class="attr-col">
+  <label>Attribute Key</label>
+  <input type="text"
+    placeholder="e.g. hours, price"
+    name="fields[${activeField.dataset.index}][columns][${idx}][key]"
+    required>
+  <small>Used internally (no spaces)</small>
+</div>
+
+<div class="attr-col">
+  <label>Attribute Name</label>
+  <input type="text"
+    placeholder="e.g. Setup Hours"
+    name="fields[${activeField.dataset.index}][columns][${idx}][label]"
+    required>
+  <small>Shown to vendors</small>
+</div>
+
+<div style="display:flex;flex-direction:column;">
+  <label style="font-size:12px;color:#374151;">Type</label>
+  <select
+    name="fields[${activeField.dataset.index}][columns][${idx}][type]"
+    style="width:100%; min-width:90px;">
+    <option value="number">Number</option>
+    <option value="text">Text</option>
+  </select>
+  <small>&nbsp;</small>
+</div>
+
+<div class="attr-remove">
+  <button type="button"
+          class="btn btn-danger btn-sm"
+          onclick="this.parentElement.parentElement.remove()">
+    <i class="fas fa-times"></i>
+  </button>
+</div>
+  `;
+
+  container.appendChild(div);
+}
+  function showForm() {
+    document.getElementById("tableSection").style.display = "none";
+    document.getElementById("formSection").style.display = "block";
+  }
+
+  function showTable() {
+    document.getElementById("formSection").style.display = "none";
+    document.getElementById("tableSection").style.display = "block";
+  }
+let fieldIndex = document.querySelectorAll("#fieldList .info-item").length;
+
+
+  let activeField = null;
+
+  function addField() {
+    // 🔒 close editor if open
+    closeFieldEditor();
+
+    const list = document.getElementById("fieldList");
+
+    const row = document.createElement("div");
+    row.className = "info-item";
+    row.dataset.index = fieldIndex;
+
+    row.innerHTML = `
+<b>New Field</b>
+<span style="font-size:12px;color:#6b7280;">Click to edit</span>
+
+<input type="hidden" name="fields[${fieldIndex}][label]">
+<input type="hidden" name="fields[${fieldIndex}][type]">
+<input type="hidden" name="fields[${fieldIndex}][required]">
+<input type="hidden" name="fields[${fieldIndex}][size]">
+<input type="hidden" name="fields[${fieldIndex}][help]">
+<input type="hidden" name="fields[${fieldIndex}][file_types]">
+<input type="hidden" name="fields[${fieldIndex}][ask_user]" value="0">
+<input type="hidden"
+       class="pricing-columns-json"
+       value="[]">
+`;
+
+    row.onclick = (e) => {
+      e.stopPropagation();     // 🔥 prevent outside click close
+      selectField(row);
+    };
+
+    list.appendChild(row);
+    fieldIndex++;
+  }
+  function closeFieldEditor() {
+    activeField = null;
+    document.getElementById("fieldEditor").style.display = "none";
+  }
+  document.addEventListener("click", function (e) {
+    const editor = document.getElementById("fieldEditor");
+    const fieldList = document.getElementById("fieldList");
+
+if (!editor.contains(e.target) &&
+    !fieldList.contains(e.target)) {
+
+  savePricingColumns();   // 🔥 SAVE FIRST
+  closeFieldEditor();
+}
+  });
+  document.getElementById("fieldEditor")
+    .addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+
+function selectField(row) {
+  activeField = row;
+  document.getElementById("fieldEditor").style.display = "block";
+
+  // Basic fields
+  fe_label.value =
+    row.querySelector('[name$="[label]"]')?.value || "";
+
+  fe_type.value =
+    row.querySelector('[name$="[type]"]')?.value || "text";
+
+  fe_required.value =
+    row.querySelector('[name$="[required]"]')?.value || "yes";
+
+  fe_help.value =
+    row.querySelector('[name$="[help]"]')?.value || "";
+
+  fe_file_types.value =
+    row.querySelector('[name$="[file_types]"]')?.value || "";
+
+  fe_ask_user.value =
+    row.querySelector('[name$="[ask_user]"]')?.value || "0";
+
+  // 🔥 Pricing group visibility
+  const fieldType = fe_type.value;
+  document.getElementById("pricingGroupEditor").style.display =
+    fieldType === "pricing_group" ? "block" : "none";
+
+  // Load pricing attributes
+  document.getElementById("pricingColumns").innerHTML = "";
+  pricingColIndex = 0;
+
+  const jsonInput = row.querySelector(".pricing-columns-json");
+
+  if (jsonInput && fieldType === "pricing_group") {
+    try {
+      const cols = JSON.parse(jsonInput.value || "[]");
+
+      cols.forEach(col => {
+        addPricingColumn();
+
+        const lastRow =
+          document.querySelector("#pricingColumns .pricing-col-row:last-child");
+
+        lastRow.querySelector('[name$="[key]"]').value = col.key;
+        lastRow.querySelector('[name$="[label]"]').value = col.label;
+        lastRow.querySelector('[name$="[type]"]').value = col.type;
+      });
+
+    } catch (e) {
+      console.error("Invalid pricing column JSON", e);
+    }
+  }
+}
+
+["fe_label", "fe_type", "fe_required", "fe_help", "fe_file_types", "fe_ask_user"]
+.forEach(id => {
+document.getElementById("pricingColumns")
+  .addEventListener("input", savePricingColumns);
+  document.getElementById(id).addEventListener("change", () => {
+    if (!activeField) return;
+
+    activeField.querySelector('[name$="[label]"]').value =
+      fe_label.value;
+
+    activeField.querySelector('[name$="[type]"]').value =
+      fe_type.value;
+
+    activeField.querySelector('[name$="[required]"]').value =
+      fe_required.value;
+
+    activeField.querySelector('[name$="[help]"]').value =
+      fe_help.value;
+
+    activeField.querySelector('[name$="[file_types]"]').value =
+      fe_file_types.value;
+
+    // 🔥 THIS WAS MISSING
+    activeField.querySelector('[name$="[ask_user]"]').value =
+      fe_ask_user.value;
+
+    activeField.querySelector("b").innerText =
+      fe_label.value || "New Field";
+  });
+});
+function removeActiveField() {
+  if (!activeField) return;
+
+  const deleteInput = activeField.querySelector('[name$="[delete]"]');
+
+  if (deleteInput) {
+    // 🔥 existing DB field → mark delete
+    deleteInput.value = "1";
+    activeField.style.display = "none";
+  } else {
+    // ➕ new unsaved field → remove instantly
+    activeField.remove();
+  }
+
+  closeFieldEditor();
+}
+function savePricingColumns() {
+  if (!activeField) return;
+
+  const rows = document.querySelectorAll("#pricingColumns .pricing-col-row");
+  const cols = [];
+
+  rows.forEach(row => {
+    const key = row.querySelector('[name$="[key]"]').value;
+    const label = row.querySelector('[name$="[label]"]').value;
+    const type = row.querySelector('[name$="[type]"]').value;
+
+    if (key && label) {
+      cols.push({
+        key: key,
+        label: label,
+        type: type
+      });
+    }
+  });
+
+  const jsonInput = activeField.querySelector(".pricing-columns-json");
+  if (jsonInput) {
+    jsonInput.value = JSON.stringify(cols);
+  }
+}
+</script>
+{% if view_mode %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document
+  .querySelectorAll("#fieldEditor input, #fieldEditor select")
+  .forEach(el => el.disabled = true);
+  });
+</script>
+{% endif %}
+{% if edit_mode %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    showForm();
+  });
+</script>
+{% endif %}
+{% if view_mode %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    showForm();   // 👈 THIS WAS MISSING
+  });
+</script>
+{% endif %}
+{% if edit_mode or view_mode %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll("#fieldList .info-item").forEach(item => {
+    const typeInput = item.querySelector('[name$="[type]"]');
+    if (typeInput && typeInput.value === "pricing_group") {
+      selectField(item);
+    }
+  });
+});
+</script>
+{% endif %}
+{% endblock %}

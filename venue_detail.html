@@ -1,0 +1,736 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div
+  class="export-wrapper"
+  style="
+    width: 1440px;
+    min-height: 812px;
+    position: relative;
+    font-family: var(--font-family-body);
+    background-color: var(--background);
+  "
+>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@100;200;300;400;500;600;700;800;900&family=Geist:wght@100;200;300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@100;200;300;400;500;600;700&family=IBM+Plex+Sans:wght@100;200;300;400;500;600;700&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Nunito:wght@200;300;400;500;600;700;800;900&family=PT+Serif:wght@400;700&family=Roboto+Slab:wght@100;200;300;400;500;600;700;800;900&family=Roboto:wght@100;300;400;500;700;900&family=Shantell+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Venue Details</title>
+      <style>
+        * {
+          box-sizing: border-box;
+        }
+        .export-wrapper {
+          margin: 0;
+          font-family: var(
+            --font-family-body,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            Roboto,
+            Helvetica,
+            Arial,
+            sans-serif
+          );
+          background-color: var(--background, #ffffff);
+          color: var(--foreground, #09090b);
+          -webkit-font-smoothing: antialiased;
+        }
+
+        /* Navigation */
+        nav {
+          height: 80px;
+          border-bottom: 1px solid var(--border, #e5e7eb);
+          display: flex;
+          align-items: center;
+          padding: 0 40px;
+          justify-content: space-between;
+          position: sticky;
+          top: 0;
+          background: var(--background, #fff);
+          z-index: 50;
+        }
+        .logo {
+          font-weight: 700;
+          font-size: 20px;
+          color: var(--primary, #000);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .nav-links {
+          display: flex;
+          gap: 24px;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--muted-foreground, #64748b);
+        }
+        .nav-item {
+          cursor: pointer;
+        }
+        .nav-item:hover {
+          color: var(--foreground, #000);
+        }
+        .user-menu {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          border: 1px solid var(--border, #e5e7eb);
+          padding: 4px 4px 4px 12px;
+          border-radius: 999px;
+          cursor: pointer;
+        }
+        .menu-icon {
+          width: 16px;
+          height: 16px;
+          color: var(--foreground, #000);
+        }
+
+        /* Main Layout */
+        main {
+          max-width: 1120px;
+          margin: 0 auto;
+          padding: 24px 24px 80px;
+        }
+
+        /* Gallery */
+        .gallery-grid {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 12px;
+          height: 400px;
+          border-radius: var(--radius-xl, 12px);
+          overflow: hidden;
+          margin-bottom: 32px;
+        }
+        
+        .gallery-main {
+          height: 100%;
+          width: 100%;
+          background-color: var(--muted, #f3f4f6);
+        }
+        .gallery-main img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .gallery-side {
+          display: grid;
+          grid-template-rows: 1fr 1fr;
+          gap: 12px;
+        }
+        .gallery-side img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        /* Content Layout */
+        .content-wrapper {
+          display: grid;
+          grid-template-columns: 1fr 380px;
+          gap: 64px;
+          align-items: start;
+        }
+.details-col {
+  margin-top: -20px;
+}
+.feature-row:first-child {
+  margin-top: 0;
+}
+        /* Left Column */
+        .venue-details h1 {
+          font-size: 32px;
+          font-weight: 600;
+          margin: 0 0 8px;
+          line-height: 1.2;
+        }
+        .venue-meta-top {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          color: var(--muted-foreground, #64748b);
+          font-size: 14px;
+          margin-bottom: 32px;
+        }
+        .venue-meta-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          text-decoration: underline;
+        }
+
+        .divider {
+          height: 1px;
+          background-color: var(--border, #e5e7eb);
+          margin: -40px 0;
+        }
+
+        .feature-row {
+          display: flex;
+          align-items: flex-start;
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+        .feature-icon {
+          width: 48px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .feature-text h4 {
+          margin: 0 0 4px;
+          font-size: 16px;
+          font-weight: 600;
+        }
+        .feature-text p {
+          margin: 0;
+          color: var(--muted-foreground, #64748b);
+          font-size: 14px;
+          line-height: 1.5;
+        }
+
+        .description-section p {
+          color: var(--foreground, #374151);
+          line-height: 1.6;
+          margin-bottom: 16px;
+        }
+        .show-more {
+          font-weight: 600;
+          text-decoration: underline;
+          cursor: pointer;
+          display: inline-block;
+        }
+
+        .amenities-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+        .amenity-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          color: var(--foreground, #374151);
+        }
+
+        /* Right Column - Booking Card */
+        .booking-card {
+          border: 1px solid var(--border, #e5e7eb);
+          border-radius: var(--radius-xl, 12px);
+          padding: 24px;
+          box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+          position: sticky;
+          top: 120px;
+        }
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+          margin-bottom: 24px;
+        }
+        .price-large {
+          font-size: 22px;
+          font-weight: 600;
+        }
+        .price-sub {
+          font-size: 14px;
+          color: var(--muted-foreground, #64748b);
+        }
+
+        .booking-form {
+          border: 1px solid var(--border, #9ca3af);
+          border-radius: var(--radius-md, 8px);
+          margin-bottom: 16px;
+          overflow: hidden;
+        }
+        .form-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          border-bottom: 1px solid var(--border, #9ca3af);
+        }
+        .form-row:last-child {
+          border-bottom: none;
+          grid-template-columns: 1fr;
+        }
+        .form-group {
+          padding: 10px 12px;
+          cursor: pointer;
+        }
+        .form-group:first-child {
+          border-right: 1px solid var(--border, #9ca3af);
+        }
+        .form-label {
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          margin-bottom: 2px;
+          color: var(--foreground, #000);
+        }
+        .form-value {
+          font-size: 14px;
+          color: var(--muted-foreground, #6b7280);
+        }
+
+        .book-btn {
+          width: 100%;
+          background-color: var(--primary, #000);
+          color: var(--primary-foreground, #fff);
+          padding: 14px;
+          border: none;
+          border-radius: var(--radius-md, 8px);
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-bottom: 16px;
+          transition: opacity 0.2s;
+        }
+        .book-btn:hover {
+          opacity: 0.9;
+        }
+        .book-btn.disabled {
+          background-color: var(--muted, #e5e7eb);
+          color: var(--muted-foreground, #9ca3af);
+          cursor: not-allowed;
+        }
+
+        .no-charge-text {
+          text-align: center;
+          font-size: 13px;
+          color: var(--muted-foreground, #64748b);
+          margin-bottom: 24px;
+        }
+
+        .price-breakdown {
+          font-size: 14px;
+          color: var(--foreground, #374151);
+        }
+        .breakdown-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 12px;
+        }
+        .breakdown-row.total {
+          margin-top: 16px;
+          padding-top: 16px;
+          border-top: 1px solid var(--border, #e5e7eb);
+          font-weight: 600;
+        }
+.book-btn {
+  background: linear-gradient(
+    135deg,
+    #059669 0%,
+    #047857 50%,
+    #065f46 100%
+  );
+  color: #ffffff;
+
+  box-shadow:
+    0 10px 22px rgba(5, 150, 105, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    transition:
+    background 0.35s ease,
+    box-shadow 0.35s ease,
+    transform 0.25s ease,
+    filter 0.25s ease;
+}
+
+.book-btn:hover {
+  background: linear-gradient(
+    135deg,
+    #065f46 0%,
+    #047857 50%,
+    #059669 100%
+  );
+
+  box-shadow:
+    0 18px 34px rgba(5, 150, 105, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+
+/* Click / Active */
+.book-btn:active {
+  transform: translateY(0);
+  box-shadow:
+    0 8px 16px rgba(5, 150, 105, 0.35),
+    inset 0 3px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* Focus (keyboard accessibility) */
+.book-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(245, 158, 11, 0.45),
+    0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Disabled */
+.book-btn.disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+.back-row {
+  margin-bottom: 16px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: #047857;
+
+  padding: 8px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+
+  background: rgba(5, 150, 105, 0.08);
+  border: 1px solid rgba(5, 150, 105, 0.25);
+
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.back-btn:hover {
+  background: rgba(5, 150, 105, 0.16);
+  color: #065f46;
+
+  transform: translateX(-3px);
+  box-shadow: 0 6px 14px rgba(5, 150, 105, 0.25);
+}
+      </style>
+      <!-- Nav -->
+
+      <main>
+        <!-- Details Header Mobile only if needed, but keeping simple structure -->
+         <div class="back-row">
+<button class="back-btn" onclick="history.back()">
+  ← Back to Venues
+</button>
+</div>
+        <div class="venue-details" style="margin-bottom: 24px">
+          <h1>{{ venue.vendor_name }}</h1>
+          <div class="venue-meta-top">
+            <span class="venue-meta-item">
+              <div
+                style="
+                  width: 16px;
+                  height: 16px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                "
+              >
+
+              </div>
+            </span>
+            <span class="venue-meta-item">
+              <div
+                style="
+                  width: 16px;
+                  height: 16px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                "
+              >
+                <iconify-icon
+                  icon="lucide:map-pin"
+                  style="font-size: 14px; color: var(--foreground)"
+                ></iconify-icon>
+              </div>
+              {{ venue.vendor_address }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Gallery -->
+<div class="gallery-grid">
+  <div class="gallery-main">
+    <img src="{{ images.0|default_if_none:'' }}" alt="Venue image">
+  </div>
+
+  <div class="gallery-side">
+    {% if images|length > 1 %}
+      <img src="{{ images.1 }}">
+    {% endif %}
+    {% if images|length > 2 %}
+      <img src="{{ images.2 }}">
+    {% endif %}
+  </div>
+</div>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+          <!-- LEFT COL -->
+          <div class="details-col">
+            <div
+              class="venue-owner-block"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 32px;
+                border-bottom: 1px solid var(--border);
+                padding-bottom: 32px;
+              "
+            >
+              <div
+                style="
+                  width: 56px;
+                  height: 56px;
+                  border-radius: 50%;
+                  overflow: hidden;
+                "
+              >
+
+              </div>
+            </div>
+
+            <!-- Highlights -->
+            <div class="feature-row">
+              <div class="feature-icon">
+                <div
+                  style="
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  "
+                >
+                  <iconify-icon
+                    icon="lucide:users"
+                    style="font-size: 24px; color: var(--foreground)"
+                  ></iconify-icon>
+                </div>
+              </div>
+              <div class="feature-text">
+                <h4>Capacity for {{ venue.vendor_guest_capacity }} Guests</h4>
+                <p>
+                  Perfect for large weddings, corporate galas, and receptions.
+                </p>
+              </div>
+            </div>
+            <div class="feature-row">
+              <div class="feature-icon">
+                <div
+                  style="
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  "
+                >
+                  <iconify-icon
+                    icon="lucide:calendar-check"
+                    style="font-size: 24px; color: var(--foreground)"
+                  ></iconify-icon>
+                </div>
+              </div>
+              <div class="feature-text">
+                <h4>
+  Available
+  {{ venue.availability_from|date:"d M Y" }}
+  –
+  {{ venue.availability_to|date:"d M Y" }}
+</h4>
+                <p>Prime holiday season dates still open for booking.</p>
+              </div>
+            </div>
+            <div class="feature-row">
+              <div class="feature-icon">
+                <div
+                  style="
+                    width: 24px;
+                    height: 24px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  "
+                >
+                
+                </div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Description -->
+
+
+
+            <!-- Amenities -->
+
+          </div>
+
+          <!-- RIGHT COL: BOOKING -->
+          <div class="booking-widget">
+            <div class="booking-card">
+              <div class="card-header">
+                <div>
+                  <span class="price-large">₹{{ venue.base_price }}</span>
+                  <span class="price-sub"> base price</span>
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    font-size: 14px;
+                  "
+                >
+                  <div
+                    style="
+                      width: 14px;
+                      height: 14px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                    "
+                  >
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="booking-form">
+                <div class="form-row">
+                  <div class="form-group" data-media-type="banani-button">
+                    <div class="form-label">Check-in</div>
+                    <div class="form-value">
+  {{ venue.availability_from|date:"d M Y" }}
+</div>
+                  </div>
+                  <div class="form-group" data-media-type="banani-button">
+                    <div class="form-label">Check-out</div>
+                    <div class="form-value">
+  {{ venue.availability_to|date:"d M Y" }}
+</div>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div
+                    class="form-group"
+                    style="border-right: none; width: 100%"
+                    data-media-type="banani-button"
+                  >
+                    <div class="form-label">Guests</div>
+                    <div class="form-value">
+  {{ venue.vendor_guest_capacity }} guests
+</div>
+                  </div>
+                </div>
+              </div>
+
+{% if is_available %}
+  <button
+    class="book-btn"
+    onclick="window.location.href='{% url 'events' %}?vendor_id={{ venue.vendor_id }}'">
+    Book Now
+  </button>
+{% else %}
+  <button class="book-btn disabled" disabled>
+    Unavailable
+  </button>
+{% endif %}
+<div class="price-breakdown">
+  <div class="breakdown-row">
+    <span style="text-decoration: underline;">
+      ₹{{ base_price|floatformat:0 }} × 1 day
+    </span>
+    <span>₹{{ base_price|floatformat:0 }}</span>
+  </div>
+
+  <div class="breakdown-row total">
+    <span>Total</span>
+    <span>₹{{ total_price|floatformat:0 }}</span>
+  </div>
+</div>
+            </div>
+
+            <div
+              style="
+                margin-top: 24px;
+                text-align: center;
+                color: var(--muted-foreground);
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+              "
+            >
+              <div
+                style="
+                  width: 16px;
+                  height: 16px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                "
+              >
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </main>
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style>
+    :root {
+      --background: #ffffff;
+      --foreground: #0f172a;
+      --border: #00000014;
+      --input: #f8fafc;
+      --primary: #f59e0b;
+      --primary-foreground: #072a11;
+      --secondary: #fef3c7;
+      --secondary-foreground: #78350f;
+      --muted: #f3f4f6;
+      --muted-foreground: #9ca3af;
+      --success: #10b981;
+      --success-foreground: #052e1f;
+      --accent: #06b6d4;
+      --accent-foreground: #003745;
+      --destructive: #ef4444;
+      --destructive-foreground: #ffffff;
+      --warning: #f97316;
+      --warning-foreground: #1a1208;
+      --card: #ffffff;
+      --card-foreground: #0f172a;
+      --sidebar: #f8fafc;
+      --sidebar-foreground: #0f172a;
+      --sidebar-primary: #fef3c7;
+      --sidebar-primary-foreground: #78350f;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --radius-xl: 12px;
+      --font-family-body: Inter;
+    }
+  </style>
+</div>
+
+
+{% endblock %}

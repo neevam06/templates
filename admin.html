@@ -1,0 +1,242 @@
+{% extends "admin_base.html" %}
+{% load static %}
+
+{% block content %}
+
+
+<div class="admin-dashboard">
+
+  <!-- ================= KPI CARDS ================= -->
+  <div class="kpi-grid">
+
+    <div class="kpi-card gradient-blue">
+      <div class="kpi-icon"><i class="fas fa-calendar-check"></i></div>
+      <div class="kpi-info">
+        <span>Total Events</span>
+        <h2>{{ total_events }}</h2>
+      </div>
+    </div>
+
+    <div class="kpi-card gradient-green">
+      <div class="kpi-icon"><i class="fas fa-map-location-dot"></i></div>
+      <div class="kpi-info">
+        <span>Total Vendors</span>
+        <h2>{{ total_events }}</h2>
+      </div>
+    </div>
+
+    <div class="kpi-card gradient-orange">
+      <div class="kpi-icon"><i class="fas fa-user-tie"></i></div>
+      <div class="kpi-info">
+        <span>Employees</span>
+        <h2>{{ total_employees }}</h2>
+      </div>
+    </div>
+
+    <div class="kpi-card gradient-purple">
+      <div class="kpi-icon"><i class="fas fa-clock"></i></div>
+      <div class="kpi-info">
+        <span>Pending Requests</span>
+        <h2>{{ pending_requests }}</h2>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= MAIN GRID ================= -->
+  <div class="dashboard-grid">
+
+    <!-- LEFT -->
+    <div class="dashboard-card">
+      <h3>📋 Recent Events</h3>
+
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for e in recent_events %}
+              <tr>
+                <td>{{ e.event_type.event_type }}</td>
+                <td>{{ e.from_datetime|date:"d M Y" }}</td>
+                <td>{{ e.vendor.vendor_name }}</td>
+                <td>
+                  {% if e.status == "APPROVED" or e.status == "SERVICE_DONE" %}
+                    <span class="badge success">Approved</span>
+                  {% elif e.status == "PENDING" %}
+                    <span class="badge warning">Pending</span>
+                  {% else %}
+                    <span class="badge">{{ e.status }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" style="text-align:center;color:#9ca3af;">
+                  No recent events
+                </td>
+              </tr>
+              {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="dashboard-card">
+      <h3>🏢 Vendor Status</h3>
+
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Vendor</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+  {% for v in vendor_status %}
+  <tr>
+    <td>{{ v.vendor_name }}</td>
+    <td>
+      {% if v.status == "AVAILABLE" or v.status == "APPROVED" %}
+        <span class="badge success">Approved</span>
+      {% elif v.status == "PENDING" %}
+        <span class="badge warning">Pending</span>
+      {% else %}
+        <span class="badge">{{ v.status }}</span>
+      {% endif %}
+    </td>
+  </tr>
+  {% empty %}
+  <tr>
+    <td colspan="2" style="text-align:center;color:#9ca3af;">
+      No vendors found
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+      </table>
+    </div>
+
+  </div>
+<div class="dashboard-grid" style="margin-top:30px;">
+
+  <!-- LEFT CHART -->
+  <div class="dashboard-card">
+    <h3>📊 Events by Status</h3>
+    <canvas id="eventStatusChart" height="120"></canvas>
+  </div>
+
+  <!-- RIGHT CHART -->
+  <div class="dashboard-card">
+    <h3>📈 Events per Month</h3>
+    <canvas id="eventsMonthChart" height="120"></canvas>
+  </div>
+    <div class="dashboard-card">
+    <h3>💰 Service Revenue by Month</h3>
+    <canvas id="serviceRevenueChart" height="120"></canvas>
+  </div>
+    <div class="dashboard-card">
+    <h3>👥 Users Registered by Month</h3>
+    <canvas id="usersMonthChart" height="120"></canvas>
+  </div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const eventStatusData = {{ event_status_chart|safe }};
+
+new Chart(document.getElementById("eventStatusChart"), {
+  type: "bar",
+  data: {
+    labels: eventStatusData.map(e => e.status),
+    datasets: [{
+      label: "Events",
+      data: eventStatusData.map(e => e.total),
+      backgroundColor: ["#f59e0b", "#10b981", "#3b82f6"]
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false }
+    }
+  }
+});
+
+/* ---------- EVENTS PER MONTH CHART ---------- */
+const eventsMonthData = {{ events_month_chart|safe }};
+
+new Chart(document.getElementById("eventsMonthChart"), {
+  type: "line",
+  data: {
+    labels: eventsMonthData.map(e => e.month),
+    datasets: [{
+      label: "Events",
+      data: eventsMonthData.map(e => e.total),
+      borderColor: "#6366f1",
+      backgroundColor: "rgba(99,102,241,0.2)",
+      fill: true,
+      tension: 0.4
+    }]
+  },
+  options: {
+    responsive: true
+  }
+});
+const serviceRevenueData = {{ service_revenue_chart|safe }};
+
+new Chart(document.getElementById("serviceRevenueChart"), {
+  type: "bar",
+  data: {
+    labels: serviceRevenueData.map(e => e.month),
+    datasets: [{
+      label: "Revenue (₹)",
+      data: serviceRevenueData.map(e => e.total),
+      backgroundColor: "#10b981",
+      borderRadius: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            return "₹ " + value;
+          }
+        }
+      }
+    }
+  }
+});
+const usersMonthData = {{ users_month_chart|safe }};
+
+new Chart(document.getElementById("usersMonthChart"), {
+  type: "line",
+  data: {
+    labels: usersMonthData.map(e => e.month),
+    datasets: [{
+      label: "Users",
+      data: usersMonthData.map(e => e.total),
+      borderColor: "#3b82f6",
+      backgroundColor: "rgba(59,130,246,0.2)",
+      fill: true,
+      tension: 0.4
+    }]
+  },
+  options: {
+    responsive: true
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'emp_base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="form-container">
+  <h2>Assign Staff</h2>
+
+  <!-- EVENT INFO -->
+  <p>
+    <strong>Event:</strong>
+    {{ event.event_type.event_type }} – {{ event.vendor.vendor_name }}
+  </p>
+
+  <!-- SERVICES INFO -->
+  <p>
+    <strong>Selected Services:</strong><br>
+    {% for s in services %}
+      • {{ s.service_name }}<br>
+    {% endfor %}
+  </p>
+
+  {% if error %}
+    <p style="color:red;">{{ error }}</p>
+  {% endif %}
+
+  <form method="POST">
+    {% csrf_token %}
+
+<div class="mb-3">
+  <label>Select Staff (Multiple)</label>
+
+  {% if no_staff_available %}
+    <!-- ⚠️ WARNING BOX -->
+    <div style="
+      padding: 14px;
+      background: #fdecea;
+      border-left: 5px solid #dc3545;
+      color: #842029;
+      border-radius: 6px;
+      margin-top: 8px;
+      font-weight: 500;
+    ">
+      ❌ No staff available for this event time.
+      <br>
+      Please go back and change services or event timing.
+    </div>
+  {% else %}
+    <select name="staff_ids[]" class="form-control select-box" multiple required>
+      {% for s in staff %}
+        <option value="{{ s.staff_id }}">
+          {{ s.staff_name }} ({{ s.department.department_name }})
+        </option>
+      {% endfor %}
+    </select>
+
+    <small style="color:gray;">
+      Hold <b>Ctrl</b> (Windows) / <b>Cmd</b> (Mac) to select multiple staff
+    </small>
+  {% endif %}
+</div>
+<button type="submit" name="back" value="1" class="btn btn-outline-secondary">
+  ← Back
+</button>
+
+{% if no_staff_available %}
+  <button type="button" class="btn btn-primary" disabled>
+    Next → Summary
+  </button>
+{% else %}
+  <button type="submit" class="btn btn-primary">
+    Next → Summary
+  </button>
+{% endif %}
+
+  </form>
+</div>
+
+{% endblock content %}

@@ -1,0 +1,69 @@
+{% extends "admin_base.html" %}
+{% block title %}Audit Logs{% endblock %}
+
+{% block content %}
+<div class="card-box"
+     id="tableSection"
+     {% if view_mode == "audit" %}style="display:none;"{% endif %}>
+
+    <div class="card-header">
+        <h2>Audit Logs</h2>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="emp-table">
+            <thead>
+                <tr>
+                    <th>SR NO</th>
+                    <th>Time</th>
+                    <th>Actor</th>
+                    <th>Action</th>
+                    <th>Entity</th>
+                    <th>Description</th>
+                    <th>IP</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ log.created_at|date:"d M Y H:i" }}</td>
+
+                    <td>
+                        <strong>{{ log.actor_type }}</strong><br>
+                        <small>{{ log.actor_email }}</small>
+                    </td>
+
+<td>
+  <span class="badge
+    {% if log.action_type == 'LOGIN' %}success
+    {% elif log.action_type == 'LOGOUT' %}secondary
+    {% elif log.action_type == 'PAYMENT' %}success
+    {% elif log.action_type == 'STATUS' %}warning
+    {% elif log.action_type == 'CREATE' %}primary
+    {% elif log.action_type == 'UPDATE' %}info
+    {% elif log.action_type == 'DELETE' %}danger
+    {% else %}default
+    {% endif %}">
+    {{ log.action_type }}
+  </span>
+</td>
+
+
+                    <td>{{ log.entity_type }} #{{ log.entity_id }}</td>
+                    <td>{{ log.description }}</td>
+                    <td>{{ log.ip_address }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" style="text-align:center;color:#888;">
+                        No audit logs found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

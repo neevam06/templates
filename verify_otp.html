@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container1">
+  <div class="form-box">
+    <h2>Enter OTP</h2>
+    <form method="POST" action="{% url 'verify_otp' %}">
+      {% csrf_token %}
+      <input type="text" name="otp" placeholder="Enter OTP" required>
+      <button type="submit" class="btn1">Verify</button>
+    </form>
+    <p>Didn’t get OTP? <a href="{% url 'forgot_password' %}">Resend</a></p>
+  </div>
+</div>
+{% endblock %}

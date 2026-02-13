@@ -1,0 +1,83 @@
+{% extends 'emp_base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="form-container">
+  <h2>Assign Department</h2>
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <!-- EVENT DROPDOWN -->
+    <div class="mb-3">
+      <label for="event_id">Select Event</label>
+<select name="event_id"
+        class="form-control"
+        required
+        onchange="this.form.submit()">
+  <option value="">-- Select Event --</option>
+  {% for event in events %}
+    <option value="{{ event.event_id }}"
+      {% if selected_event and selected_event.event_id == event.event_id %}selected{% endif %}
+    >
+      {{ event.event_type }} - {{ event.vendor.vendor_name }}
+    </option>
+  {% endfor %}
+</select>
+    </div>
+<!-- {% if no_department_available %}
+<div class="mb-3" style="
+    padding: 14px;
+    margin-bottom: 15px;
+    background: #fff3cd;
+    border-left: 5px solid #ffc107;
+    color: #664d03;
+    border-radius: 6px;
+    font-weight: 500;
+">
+    ⚠️ No staff available for the selected event time.
+</div>
+{% endif %} -->
+    <!-- MULTIPLE DEPARTMENT SELECTION -->
+
+
+<label class="section-title">Select Vendors</label>
+
+<div class="vendor-grid">
+  {% for vendor in vendors %}
+    <label class="vendor-card">
+      <input
+        type="checkbox"
+        name="vendor_ids[]"
+        value="{{ vendor.id }}"
+        class="vendor-checkbox"
+        value="{{ vendor.id }}"
+      />
+
+      <div class="vendor-info">
+        <h4>{{ vendor.company_name }}</h4>
+        <span class="vendor-type">{{ vendor.vendor_type|title }}</span>
+      </div>
+
+      <div class="checkmark">
+        ✓
+      </div>
+    </label>
+  {% endfor %}
+</div>
+
+    <button type="submit" class="btn btn-primary">
+      Next → Assign Service
+    </button>
+  </form>
+</div>
+<!-- <script>
+  const eventSelect = document.getElementById("event_id");
+
+  document.querySelectorAll('.vendor-checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      eventSelect.disabled = true;
+    });
+  });
+</script> -->
+{% endblock content %}

@@ -1,0 +1,119 @@
+{% extends 'emp_base.html' %}
+{% load custom_filters %}
+{% load static %}
+{% block content %}
+
+<div class="form-container">
+  <h2>Assign Services</h2>
+
+  <div class="event-info">
+    <p>
+      <strong>Event:</strong>
+      {{ event.event_type }} – {{ event.vendor.vendor_name }}
+    </p>
+  </div>
+
+  {% for service, fields in service_fields_map.items %}
+    <div class="service-box">
+      <h4>
+        {{ service|title }}
+        <span class="service-badge">{{ service|title }}</span>
+      </h4>
+
+      {% for field in fields %}
+        {% with value=metadata|get_item:field.system_key|default:metadata|get_item:field.label %}
+        <div class="mb-3">
+
+          <!-- TEXT -->
+          {% if field.field_type == "text" %}
+            <label>{{ field.label }}</label>
+            <input type="text" class="form-control" value="{{ value }}" disabled>
+
+          <!-- NUMBER -->
+          {% elif field.field_type == "number" %}
+            <label>{{ field.label }}</label>
+            <input type="number" class="form-control" value="{{ value }}" disabled>
+<input type="hidden" name="field_{{ field.id }}" value="{{ value }}">
+
+          <!-- TEXTAREA -->
+          {% elif field.field_type == "textarea" %}
+            <label>{{ field.label }}</label>
+            <textarea class="form-control" disabled>{{ value }}</textarea>
+
+          <!-- ✅ CHECKBOX (MATCHES events.html) -->
+          {% elif field.field_type == "checkbox" %}
+            <label class="checkbox-card">
+              <input type="checkbox" {% if value %}checked{% endif %} disabled>
+{% if value %}
+  <input type="hidden" name="field_{{ field.id }}" value="1">
+{% endif %}
+              <span class="checkmark"></span>
+              <span class="label-text">{{ field.label }}</span>
+            </label>
+
+          <!-- MULTI -->
+          {% elif field.field_type == "multi" %}
+            <label>{{ field.label }}</label>
+            <ul>
+              {% for v in value %}
+                <li>{{ v }}</li>
+              {% endfor %}
+            </ul>
+
+          <!-- PRICING GROUP -->
+          {% elif field.field_type == "pricing_group" %}
+            <label>{{ field.label }}</label>
+            <table class="table table-bordered">
+              <tr>
+                {% for col in field.pricing_columns.all %}
+                  <th>{{ col.label }}</th>
+                {% endfor %}
+              </tr>
+{% for row in value %}
+<tr>
+  {% for col in field.pricing_columns.all %}
+    <td>
+      {{ row|get_item:col.key }}
+
+      {% if col.key == "price" %}
+        <input
+          type="hidden"
+          name="pricing_{{ field.id }}[{{ forloop.parentloop.counter0 }}][price]"
+          value="{{ row|get_item:col.key }}"
+        >
+      {% endif %}
+    </td>
+  {% endfor %}
+</tr>
+{% endfor %}
+            </table>
+
+          {% endif %}
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+  {% endfor %}
+
+<form method="POST">
+  {% csrf_token %}
+
+  <div class="service-actions" style="display:flex;justify-content:space-between;margin-top:30px;">
+    <button
+      type="submit"
+      name="back"
+      class="btn btn-secondary">
+      ← Back
+    </button>
+
+    <button
+      type="submit"
+      name="next"
+      class="btn btn-primary">
+      Finish Event
+    </button>
+  </div>
+</form>
+</div>
+
+{% endblock %}
